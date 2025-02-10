@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Manta-Network/manta-fp/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
 
 	sdkErr "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -36,8 +36,8 @@ import (
 	"go.uber.org/zap"
 	protobuf "google.golang.org/protobuf/proto"
 
+	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
 	opclient "github.com/Manta-Network/manta-fp/ethereum/node"
-	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
 	"github.com/Manta-Network/manta-fp/types"
 )
 
