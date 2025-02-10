@@ -32,7 +32,7 @@ type Server struct {
 	quit chan struct{}
 }
 
-// NewFinalityproviderServer creates a new server with the given config.
+// NewFinalityProviderServer creates a new server with the given config.
 func NewFinalityProviderServer(cfg *fpcfg.Config, l *zap.Logger, fpa *FinalityProviderApp, db kvdb.Backend, sig signal.Interceptor) *Server {
 	return &Server{
 		cfg:         cfg,

@@ -421,7 +421,7 @@ func runCommandAddFinalitySig(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// CommandAddFinalitySig returns the add-finality-sig command by connecting to the fpd daemon.
+// CommandAddEotsKey returns the add-finality-sig command by connecting to the fpd daemon.
 func CommandAddEotsKey() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:     "add-eots-key [key-name] [pass-phrase] [hd-path]",
