@@ -22,12 +22,14 @@ type SubmitFinalitySignatureMsg struct {
 }
 
 type SubmitFinalitySignatureMsgParams struct {
-	FpPubkeyHex string `json:"fp_pubkey_hex"`
-	Height      uint64 `json:"height"`
-	PubRand     []byte `json:"pub_rand"`
-	Proof       Proof  `json:"proof"`
-	StateRoot   []byte `json:"state_root"`
-	Signature   []byte `json:"signature"`
+	FpPubkeyHex   string `json:"fp_pubkey_hex"`
+	L1BlockNumber uint64 `json:"l1_block_number"`
+	L1BlockHash   string `json:"l1_block_hash"`
+	L2BlockNumber uint64 `json:"l2_block_number"`
+	PubRand       []byte `json:"pub_rand"`
+	Proof         Proof  `json:"proof"`
+	StateRoot     []byte `json:"state_root"`
+	Signature     []byte `json:"signature"`
 }
 
 // TODO: need to update based on contract implementation

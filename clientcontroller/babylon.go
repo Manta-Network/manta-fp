@@ -57,8 +57,7 @@ type BabylonController struct {
 	btcParams  *chaincfg.Params
 	logger     *zap.Logger
 
-	OPFinalityGadgetAddress  string
-	BabylonFinalityGadgetRpc string
+	OPFinalityGadgetAddress string
 }
 
 func NewBabylonController(
@@ -104,7 +103,6 @@ func NewBabylonController(
 		btcParams,
 		logger,
 		opCfg.OPFinalityGadgetAddress,
-		opCfg.BabylonFinalityGadgetRpc,
 	}, nil
 }
 
@@ -253,12 +251,14 @@ func (bc *BabylonController) SubmitBatchFinalitySigs(
 
 	msg := SubmitFinalitySignatureMsg{
 		SubmitFinalitySignature: SubmitFinalitySignatureMsgParams{
-			FpPubkeyHex: bbntypes.NewBIP340PubKeyFromBTCPK(fpPk).MarshalHex(),
-			Height:      block.Height,
-			PubRand:     bbntypes.NewSchnorrPubRandFromFieldVal(pubRand).MustMarshal(),
-			Proof:       ConvertProof(cmtProof),
-			StateRoot:   block.StateRoot.StateRoot[:],
-			Signature:   bbntypes.NewSchnorrEOTSSigFromModNScalar(sig).MustMarshal(),
+			FpPubkeyHex:   bbntypes.NewBIP340PubKeyFromBTCPK(fpPk).MarshalHex(),
+			L1BlockNumber: block.L1BlockNumber,
+			L1BlockHash:   block.L1BlockHash.String(),
+			L2BlockNumber: block.L2BlockNumber.Uint64(),
+			PubRand:       bbntypes.NewSchnorrPubRandFromFieldVal(pubRand).MustMarshal(),
+			Proof:         ConvertProof(cmtProof),
+			StateRoot:     block.StateRoot.StateRoot[:],
+			Signature:     bbntypes.NewSchnorrEOTSSigFromModNScalar(sig).MustMarshal(),
 		},
 	}
 	if msg.SubmitFinalitySignature.Proof.Aunts == nil {

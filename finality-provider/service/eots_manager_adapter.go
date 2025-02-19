@@ -58,8 +58,8 @@ func getMsgToSignForVote(blockHeight uint64, stateRoot []byte) []byte {
 
 func (fp *FinalityProviderInstance) signFinalitySig(b *types.BlockInfo) (*bbntypes.SchnorrEOTSSig, error) {
 	// build proper finality signature request
-	msgToSign := getMsgToSignForVote(b.Height, b.StateRoot.StateRoot[:])
-	sig, err := fp.em.SignEOTS(fp.btcPk.MustMarshal(), fp.GetChainID(), msgToSign, b.Height, fp.passphrase)
+	msgToSign := getMsgToSignForVote(b.L2BlockNumber.Uint64(), b.StateRoot.StateRoot[:])
+	sig, err := fp.em.SignEOTS(fp.btcPk.MustMarshal(), fp.GetChainID(), msgToSign, b.L2BlockNumber.Uint64(), fp.passphrase)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign EOTS: %w", err)
 	}

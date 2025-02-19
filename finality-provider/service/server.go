@@ -29,6 +29,10 @@ type Server struct {
 	db          kvdb.Backend
 	interceptor signal.Interceptor
 
+	metricsServer *metrics.Server
+	lis           net.Listener
+	grpcServer    *grpc.Server
+
 	quit chan struct{}
 }
 
@@ -44,9 +48,7 @@ func NewFinalityProviderServer(cfg *fpcfg.Config, l *zap.Logger, fpa *FinalityPr
 	}
 }
 
-// RunUntilShutdown runs the main EOTS manager server loop until a signal is
-// received to shut down the process.
-func (s *Server) RunUntilShutdown() error {
+func (s *Server) StartFinalityProviderServer() error {
 	if atomic.AddInt32(&s.started, 1) != 1 {
 		return nil
 	}
@@ -56,7 +58,35 @@ func (s *Server) RunUntilShutdown() error {
 	if err != nil {
 		return fmt.Errorf("failed to get prometheus address: %w", err)
 	}
-	metricsServer := metrics.Start(promAddr, s.logger)
+	s.metricsServer = metrics.Start(promAddr, s.logger)
+
+	listenAddr := s.cfg.RPCListener
+	// we create listeners from the RPCListeners defined
+	// in the config.
+	s.lis, err = net.Listen("tcp", listenAddr)
+	if err != nil {
+		return fmt.Errorf("failed to listen on %s: %w", listenAddr, err)
+	}
+
+	grpcServer := grpc.NewServer()
+	s.grpcServer = grpcServer
+
+	if err := s.rpcServer.RegisterWithGrpcServer(grpcServer); err != nil {
+		return fmt.Errorf("failed to register gRPC server: %w", err)
+	}
+
+	// All the necessary parts have been registered, so we can
+	// actually start listening for requests.
+	s.startGrpcListen(grpcServer, []net.Listener{s.lis})
+
+	s.logger.Info("Finality Provider Daemon is fully active!")
+
+	return nil
+}
+
+// RunUntilShutdown runs the main EOTS manager server loop until a signal is
+// received to shut down the process.
+func (s *Server) RunUntilShutdown() error {
 
 	defer func() {
 		s.logger.Info("Shutdown complete")
@@ -69,35 +99,17 @@ func (s *Server) RunUntilShutdown() error {
 		} else {
 			s.logger.Info("Database closed")
 		}
-		metricsServer.Stop(context.Background())
+		s.metricsServer.Stop(context.Background())
 		s.logger.Info("Metrics server stopped")
 	}()
 
-	listenAddr := s.cfg.RPCListener
-	// we create listeners from the RPCListeners defined
-	// in the config.
-	lis, err := net.Listen("tcp", listenAddr)
-	if err != nil {
-		return fmt.Errorf("failed to listen on %s: %w", listenAddr, err)
-	}
 	defer func() {
-		if err := lis.Close(); err != nil {
+		if err := s.lis.Close(); err != nil {
 			s.logger.Error(fmt.Sprintf("Failed to close network listener: %v", err))
 		}
 	}()
 
-	grpcServer := grpc.NewServer()
-	defer grpcServer.Stop()
-
-	if err := s.rpcServer.RegisterWithGrpcServer(grpcServer); err != nil {
-		return fmt.Errorf("failed to register gRPC server: %w", err)
-	}
-
-	// All the necessary parts have been registered, so we can
-	// actually start listening for requests.
-	s.startGrpcListen(grpcServer, []net.Listener{lis})
-
-	s.logger.Info("Finality Provider Daemon is fully active!")
+	defer s.grpcServer.Stop()
 
 	// Wait for shutdown signal from either a graceful server stop or from
 	// the interrupt handler.

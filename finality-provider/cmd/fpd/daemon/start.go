@@ -86,17 +86,21 @@ func runStartCmd(ctx client.Context, cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("failed to load app: %w", err)
 	}
 
-	if err := startApp(fpApp, fpStr, passphrase); err != nil {
-		return fmt.Errorf("failed to start app: %w", err)
-	}
-
 	// Hook interceptor for os signals.
 	shutdownInterceptor, err := signal.Intercept()
 	if err != nil {
 		return err
 	}
-
 	fpServer := service.NewFinalityProviderServer(cfg, logger, fpApp, dbBackend, shutdownInterceptor)
+	err = fpServer.StartFinalityProviderServer()
+	if err != nil {
+		return fmt.Errorf("failed to start fp server: %w", err)
+	}
+
+	if err := startApp(fpApp, fpStr, passphrase); err != nil {
+		return fmt.Errorf("failed to start app: %w", err)
+	}
+
 	return fpServer.RunUntilShutdown()
 }
 

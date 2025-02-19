@@ -74,9 +74,23 @@ func NewFinalityProviderInstance(
 	sRStore *store.OpStateRootStore,
 	eP *opstack.EventProvider,
 ) (*FinalityProviderInstance, error) {
-	sfp, err := s.GetFinalityProvider(fpPk.MustToBTCPK())
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve the finality provider %s from DB: %w", fpPk.MarshalHex(), err)
+	var sfp *store.StoredFinalityProvider
+	var err error
+	createTicker := time.NewTicker(time.Second * 3)
+	defer createTicker.Stop()
+	for {
+		<-createTicker.C
+		sfp, err = s.GetFinalityProvider(fpPk.MustToBTCPK())
+		if err != nil {
+			if errors.Is(err, store.ErrFinalityProviderNotFound) {
+				logger.Warn("wait for finality provider to register")
+				continue
+			} else {
+				return nil, fmt.Errorf("failed to retrieve the finality provider %s from DB: %w", fpPk.MarshalHex(), err)
+			}
+		} else {
+			break
+		}
 	}
 
 	if !sfp.ShouldStart() {
@@ -287,7 +301,7 @@ func (fp *FinalityProviderInstance) getRandomnessCommitmentBlocksFromChan() []*t
 }
 
 func (fp *FinalityProviderInstance) shouldProcessBlock(b *types.BlockInfo) (bool, error) {
-	if b.Height <= fp.GetLastVotedHeight() {
+	if b.L2BlockNumber.Uint64() <= fp.GetLastVotedHeight() {
 		fp.logger.Debug(
 			"the block height is lower than last processed height",
 			zap.String("pk", fp.GetBtcPkHex()),
@@ -349,7 +363,7 @@ func (fp *FinalityProviderInstance) randomnessCommitmentLoop() {
 }
 
 func (fp *FinalityProviderInstance) hasVotingPower(b *types.BlockInfo) (bool, error) {
-	hasPower, err := fp.GetVotingPowerWithRetry(b.Height)
+	hasPower, err := fp.GetVotingPowerWithRetry(b.L2BlockNumber.Uint64())
 	if err != nil {
 		return false, err
 	}
@@ -466,7 +480,7 @@ func (fp *FinalityProviderInstance) retryCommitPubRandUntilBlockFinalized(target
 		//  proofs, and 3) committing public randomness.
 		// TODO: make 3) a part of `select` statement. The function terminates upon either the block
 		// is finalised or the pub rand is committed successfully
-		block, res, err := fp.CommitPubRand(targetBlock.Height, targetBlock.StateRoot.StateRoot[:])
+		res, err := fp.CommitPubRand(targetBlock.L2BlockNumber.Uint64(), targetBlock.StateRoot.StateRoot[:])
 		if err != nil {
 			if clientcontroller.IsUnrecoverable(err) {
 				return nil, nil, err
@@ -485,7 +499,7 @@ func (fp *FinalityProviderInstance) retryCommitPubRandUntilBlockFinalized(target
 			}
 		} else {
 			// the public randomness has been successfully submitted
-			return block, res, nil
+			return targetBlock, res, nil
 		}
 		select {
 		case <-time.After(fp.cfg.SubmissionRetryInterval):
@@ -518,7 +532,7 @@ func (fp *FinalityProviderInstance) retryCommitPubRandUntilBlockFinalized(target
 // Note:
 // - if there is no pubrand committed before, it will start from the tipHeight
 // - if the tipHeight is too large, it will only commit fp.cfg.NumPubRand pairs
-func (fp *FinalityProviderInstance) CommitPubRand(tipHeight uint64, stateroot []byte) (*types.BlockInfo, *types.TxResponse, error) {
+func (fp *FinalityProviderInstance) CommitPubRand(tipHeight uint64, stateroot []byte) (*types.TxResponse, error) {
 	//lastCommittedHeight, err := fp.GetLastCommittedHeight()
 	//if err != nil {
 	//	return nil, nil, err
@@ -547,11 +561,11 @@ func (fp *FinalityProviderInstance) CommitPubRand(tipHeight uint64, stateroot []
 
 	startHeight = tipHeight
 
-	return fp.commitPubRandPairs(startHeight, stateroot)
+	return fp.commitPubRandPairs(startHeight)
 }
 
 // it will commit fp.cfg.NumPubRand pairs of public randomness starting from startHeight
-func (fp *FinalityProviderInstance) commitPubRandPairs(startHeight uint64, stateroot []byte) (*types.BlockInfo, *types.TxResponse, error) {
+func (fp *FinalityProviderInstance) commitPubRandPairs(startHeight uint64) (*types.TxResponse, error) {
 	// generate a list of Schnorr randomness pairs
 	// NOTE: currently, calling this will create and save a list of randomness
 	// in case of failure, randomness that has been created will be overwritten
@@ -567,31 +581,26 @@ func (fp *FinalityProviderInstance) commitPubRandPairs(startHeight uint64, state
 
 	// store them to database
 	if err := fp.pubRandState.addPubRandProofList(pubRandList, proofList); err != nil {
-		return nil, nil, fmt.Errorf("failed to save public randomness to DB: %w", err)
+		return nil, fmt.Errorf("failed to save public randomness to DB: %w", err)
 	}
 
 	// sign the commitment
 	schnorrSig, err := fp.signPubRandCommit(startHeight, numPubRand, commitment)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to sign the Schnorr signature: %w", err)
+		return nil, fmt.Errorf("failed to sign the Schnorr signature: %w", err)
 	}
 
 	res, err := fp.cc.CommitPubRandList(fp.GetBtcPk(), startHeight, numPubRand, commitment, schnorrSig)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to commit public randomness to the consumer chain: %w", err)
+		return nil, fmt.Errorf("failed to commit public randomness to the consumer chain: %w", err)
 	}
-
-	// Todo change to stateroot
-	var block types.BlockInfo
-	block.Height = startHeight
-	block.StateRoot.StateRoot = [32]byte(stateroot)
 
 	// Update metrics
 	fp.metrics.RecordFpRandomnessTime(fp.GetBtcPkHex())
 	fp.metrics.RecordFpLastCommittedRandomnessHeight(fp.GetBtcPkHex(), startHeight+numPubRand-1)
 	fp.metrics.AddToFpTotalCommittedRandomness(fp.GetBtcPkHex(), float64(len(pubRandList)))
 
-	return &block, res, nil
+	return res, nil
 }
 
 // TestCommitPubRand is exposed for devops/testing purpose to allow manual committing public randomness in cases
@@ -655,7 +664,7 @@ func (fp *FinalityProviderInstance) TestCommitPubRandWithStartHeight(startHeight
 	// TODO: instead of sending multiple txs, a better way is to bundle all the commit messages into
 	// one like we do for batch finality signatures. see discussion https://bit.ly/3OmbjkN
 	for startHeight <= targetBlockHeight {
-		_, _, err = fp.commitPubRandPairs(startHeight, []byte(""))
+		_, err = fp.commitPubRandPairs(startHeight)
 		if err != nil {
 			return err
 		}
@@ -686,7 +695,7 @@ func (fp *FinalityProviderInstance) SubmitBatchFinalitySignatures(blocks []*type
 
 	// get public randomness list
 	// #nosec G115 -- performed the conversion check above
-	prList, err := fp.getPubRandList(blocks[0].Height, uint32(len(blocks)))
+	prList, err := fp.getPubRandList(blocks[0].L2BlockNumber.Uint64(), uint32(len(blocks)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get public randomness list: %w", err)
 	}
