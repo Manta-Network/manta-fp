@@ -9,7 +9,7 @@ import (
 	"github.com/Manta-Network/manta-fp/eotsmanager/config"
 )
 
-// NewRootCmd creates a new root command for fpd. It is called once in the main function.
+// NewRootCmd creates a new root command for bfpd. It is called once in the main function.
 func NewRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:               "eotsd",
