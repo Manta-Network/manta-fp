@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/Manta-Network/manta-fp/cosmwasmclient/config"
+
 	"github.com/stretchr/testify/require"
 )
 

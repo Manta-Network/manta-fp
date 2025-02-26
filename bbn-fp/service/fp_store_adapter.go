@@ -3,12 +3,12 @@ package service
 import (
 	"sync"
 
+	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
+	"github.com/Manta-Network/manta-fp/bbn-fp/store"
+
 	bbntypes "github.com/babylonlabs-io/babylon/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"go.uber.org/zap"
-
-	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
-	"github.com/Manta-Network/manta-fp/bbn-fp/store"
 )
 
 type fpState struct {

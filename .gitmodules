@@ -1,0 +1,3 @@
+[submodule "manta-staking-contracts"]
+	path = manta-staking-contracts
+	url = https://github.com/Manta-Network/manta-staking-contracts

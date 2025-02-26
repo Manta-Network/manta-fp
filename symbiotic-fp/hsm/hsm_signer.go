@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"math/big"
 
-	kms "cloud.google.com/go/kms/apiv1"
-	btcecdsa "github.com/btcsuite/btcd/btcec/v2/ecdsa"
-	kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
-
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+
+	kms "cloud.google.com/go/kms/apiv1"
+	btcecdsa "github.com/btcsuite/btcd/btcec/v2/ecdsa"
+	kmspb "google.golang.org/genproto/googleapis/cloud/kms/v1"
 )
 
 type ManagedKey struct {

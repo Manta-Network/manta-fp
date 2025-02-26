@@ -1,7 +1,6 @@
 package config
 
 import (
-	"github.com/ethereum/go-ethereum/common"
 	"time"
 )
 
@@ -14,11 +13,10 @@ var (
 )
 
 type OpEventConfig struct {
-	ChainId            uint
-	BlockStep          uint64
-	BufferSize         uint32 `long:"buffersize" description:"The maximum number of ethereum blocks that can be stored in the buffer"`
-	EthRpc             string `long:"ethrpc" description:"The rpc uri of ethereum"`
-	Contracts          []common.Address
+	ChainId            uint          `long:"chain_id" description:"The chain id of the chain"`
+	BlockStep          uint64        `long:"block_step" description:"The block step of chain blocks scan"`
+	BufferSize         uint32        `long:"buffersize" description:"The maximum number of ethereum blocks that can be stored in the buffer"`
+	EthRpc             string        `long:"ethrpc" description:"The rpc uri of ethereum"`
 	L2OutputOracleAddr string        `long:"l2outputoracleaddr" description:"The contract address of L2OutputOracle address"`
 	PollInterval       time.Duration `long:"pollinterval" description:"The interval between each polling of blocks; the value should be set depending on the block production time but could be set smaller for quick catching up"`
 	ScanStartHeight    uint64        `long:"scantartheight" description:"The height from which we start polling the chain"`

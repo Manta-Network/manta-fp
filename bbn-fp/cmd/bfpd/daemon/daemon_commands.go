@@ -5,10 +5,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	client2 "github.com/Manta-Network/manta-fp/eotsmanager/client"
 	"os"
 	"strconv"
 	"strings"
+
+	fpcmd "github.com/Manta-Network/manta-fp/bbn-fp/cmd"
+	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
+	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
+	dc "github.com/Manta-Network/manta-fp/bbn-fp/service/client"
+	client2 "github.com/Manta-Network/manta-fp/eotsmanager/client"
 
 	"cosmossdk.io/math"
 	"github.com/babylonlabs-io/babylon/types"
@@ -17,12 +22,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-
-	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
-
-	fpcmd "github.com/Manta-Network/manta-fp/bbn-fp/cmd"
-	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
-	dc "github.com/Manta-Network/manta-fp/bbn-fp/service/client"
 )
 
 var (

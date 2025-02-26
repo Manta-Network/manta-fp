@@ -1,10 +1,10 @@
 package eotsmanager
 
 import (
+	"github.com/Manta-Network/manta-fp/eotsmanager/types"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
-
-	"github.com/Manta-Network/manta-fp/eotsmanager/types"
 )
 
 type EOTSManager interface {

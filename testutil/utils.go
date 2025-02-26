@@ -4,11 +4,11 @@ import (
 	"math/rand"
 	"testing"
 
-	sdkmath "cosmossdk.io/math"
-	"github.com/golang/mock/gomock"
-
 	"github.com/Manta-Network/manta-fp/testutil/mocks"
 	"github.com/Manta-Network/manta-fp/types"
+
+	sdkmath "cosmossdk.io/math"
+	"github.com/golang/mock/gomock"
 )
 
 const TestPubRandNum = 25

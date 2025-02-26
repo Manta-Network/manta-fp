@@ -5,7 +5,15 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	mrand "math/rand"
+	"regexp"
+	"strconv"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/Manta-Network/manta-fp/testutil"
+
 	"github.com/babylonlabs-io/babylon/testutil/datagen"
 	bbn "github.com/babylonlabs-io/babylon/types"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -13,12 +21,6 @@ import (
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/stretchr/testify/require"
-	mrand "math/rand"
-	"regexp"
-	"strconv"
-	"strings"
-	"testing"
-	"time"
 )
 
 const (

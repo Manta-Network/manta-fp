@@ -7,15 +7,15 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
+	"github.com/Manta-Network/manta-fp/types"
+	"github.com/Manta-Network/manta-fp/version"
+
 	sdkmath "cosmossdk.io/math"
 	bbntypes "github.com/babylonlabs-io/babylon/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"google.golang.org/grpc"
 	protobuf "google.golang.org/protobuf/proto"
-
-	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
-	"github.com/Manta-Network/manta-fp/types"
-	"github.com/Manta-Network/manta-fp/version"
 )
 
 // rpcServer is the main RPC server for the Finality Provider daemon that handles

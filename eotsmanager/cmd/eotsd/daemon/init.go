@@ -3,11 +3,11 @@ package daemon
 import (
 	"fmt"
 
-	"github.com/jessevdk/go-flags"
-	"github.com/spf13/cobra"
-
 	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
 	"github.com/Manta-Network/manta-fp/util"
+
+	"github.com/jessevdk/go-flags"
+	"github.com/spf13/cobra"
 )
 
 func NewInitCmd() *cobra.Command {

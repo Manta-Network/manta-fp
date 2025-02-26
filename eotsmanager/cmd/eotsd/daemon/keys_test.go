@@ -8,15 +8,15 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/Manta-Network/manta-fp/eotsmanager"
+	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
+	"github.com/Manta-Network/manta-fp/testutil"
+
 	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-
-	"github.com/Manta-Network/manta-fp/eotsmanager"
-	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
-	"github.com/Manta-Network/manta-fp/testutil"
 )
 
 func FuzzNewKeysCmd(f *testing.F) {

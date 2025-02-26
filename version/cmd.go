@@ -2,8 +2,9 @@ package version
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
 // CommandVersion prints cmd version

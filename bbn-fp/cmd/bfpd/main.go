@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"os"
 
-	incentivecli "github.com/babylonlabs-io/babylon/x/incentive/client/cli"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cobra"
-
 	fpcmd "github.com/Manta-Network/manta-fp/bbn-fp/cmd"
 	"github.com/Manta-Network/manta-fp/bbn-fp/cmd/bfpd/daemon"
 	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
 	"github.com/Manta-Network/manta-fp/version"
+
+	incentivecli "github.com/babylonlabs-io/babylon/x/incentive/client/cli"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cobra"
 )
 
 // NewRootCmd creates a new root command for bfpd. It is called once in the main function.

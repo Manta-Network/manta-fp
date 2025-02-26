@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 
-	"google.golang.org/grpc"
-
 	"github.com/Manta-Network/manta-fp/eotsmanager"
 	"github.com/Manta-Network/manta-fp/eotsmanager/proto"
+
+	"google.golang.org/grpc"
 )
 
 // rpcServer is the main RPC server for the EOTS daemon that handles

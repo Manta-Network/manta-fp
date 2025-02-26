@@ -7,14 +7,14 @@ import (
 	"strconv"
 	"time"
 
+	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
+	"github.com/Manta-Network/manta-fp/metrics"
+	"github.com/Manta-Network/manta-fp/util"
+
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/jessevdk/go-flags"
 	"go.uber.org/zap/zapcore"
-
-	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
-	"github.com/Manta-Network/manta-fp/metrics"
-	"github.com/Manta-Network/manta-fp/util"
 )
 
 const (

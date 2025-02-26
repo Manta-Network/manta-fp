@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	bbn "github.com/babylonlabs-io/babylon/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/cometbft/cometbft/crypto/merkle"

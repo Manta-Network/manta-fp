@@ -6,19 +6,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	"go.uber.org/zap"
+	"github.com/Manta-Network/manta-fp/eotsmanager"
+	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
+	fpkr "github.com/Manta-Network/manta-fp/keyring"
+	"github.com/Manta-Network/manta-fp/testutil"
 
 	"github.com/babylonlabs-io/babylon/types"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/stretchr/testify/require"
-
-	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
-
-	fpkr "github.com/Manta-Network/manta-fp/keyring"
-
-	"github.com/Manta-Network/manta-fp/eotsmanager"
-	"github.com/Manta-Network/manta-fp/testutil"
+	"go.uber.org/zap"
 )
 
 var (

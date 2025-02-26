@@ -6,16 +6,16 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/Manta-Network/manta-fp/eotsmanager"
+	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
+	"github.com/Manta-Network/manta-fp/eotsmanager/types"
+	"github.com/Manta-Network/manta-fp/testutil"
+
 	"github.com/babylonlabs-io/babylon/crypto/eots"
 	"github.com/babylonlabs-io/babylon/testutil/datagen"
 	bbntypes "github.com/babylonlabs-io/babylon/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-
-	"github.com/Manta-Network/manta-fp/eotsmanager"
-	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
-	"github.com/Manta-Network/manta-fp/eotsmanager/types"
-	"github.com/Manta-Network/manta-fp/testutil"
 )
 
 var (

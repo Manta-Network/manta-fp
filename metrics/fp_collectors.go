@@ -4,10 +4,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
 	"github.com/Manta-Network/manta-fp/bbn-fp/store"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type FpMetrics struct {

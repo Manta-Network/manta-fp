@@ -8,12 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/require"
-
-	"github.com/Manta-Network/manta-fp/symbiotic-fp/txmgr"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
+
+	"github.com/Manta-Network/manta-fp/symbiotic-fp/txmgr"
+
+	"github.com/stretchr/testify/require"
 )
 
 type testHarness struct {

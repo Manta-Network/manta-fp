@@ -6,6 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Manta-Network/manta-fp/bbn-fp/store"
+	"github.com/Manta-Network/manta-fp/codec"
+	fpkr "github.com/Manta-Network/manta-fp/keyring"
+	"github.com/Manta-Network/manta-fp/types"
+
 	sdkmath "cosmossdk.io/math"
 	"github.com/babylonlabs-io/babylon/crypto/eots"
 	"github.com/babylonlabs-io/babylon/testutil/datagen"
@@ -14,12 +19,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
-
-	"github.com/Manta-Network/manta-fp/bbn-fp/store"
-	fpkr "github.com/Manta-Network/manta-fp/keyring"
-
-	"github.com/Manta-Network/manta-fp/codec"
-	"github.com/Manta-Network/manta-fp/types"
 )
 
 func GenRandomByteArray(r *rand.Rand, length uint64) []byte {

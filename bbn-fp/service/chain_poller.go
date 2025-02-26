@@ -5,14 +5,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/avast/retry-go/v4"
-	"go.uber.org/atomic"
-	"go.uber.org/zap"
-
 	cfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
 	"github.com/Manta-Network/manta-fp/clientcontroller"
 	"github.com/Manta-Network/manta-fp/metrics"
 	"github.com/Manta-Network/manta-fp/types"
+
+	"github.com/avast/retry-go/v4"
+	"go.uber.org/atomic"
+	"go.uber.org/zap"
 )
 
 var (

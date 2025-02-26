@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Manta-Network/manta-fp/cosmwasmclient/config"
+
 	rpcclient "github.com/cometbft/cometbft/rpc/client"
 	"github.com/cosmos/cosmos-sdk/client"
 )

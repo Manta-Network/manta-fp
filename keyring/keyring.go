@@ -6,10 +6,10 @@ import (
 	"path"
 	"strings"
 
+	"github.com/Manta-Network/manta-fp/codec"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-
-	"github.com/Manta-Network/manta-fp/codec"
 )
 
 func CreateKeyring(keyringDir string, chainID string, backend string, input *strings.Reader) (keyring.Keyring, error) {

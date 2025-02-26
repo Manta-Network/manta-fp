@@ -4,10 +4,10 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
 	"github.com/Manta-Network/manta-fp/testutil"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestShouldStart(t *testing.T) {

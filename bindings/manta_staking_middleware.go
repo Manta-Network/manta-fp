@@ -29,8 +29,8 @@ var (
 	_ = abi.ConvertType
 )
 
-// MantaStakingMiddlewareDefaultVaultInitParams is an auto generated low-level Go binding around an user-defined struct.
-type MantaStakingMiddlewareDefaultVaultInitParams struct {
+// DefaultVaultInitParams is an auto generated low-level Go binding around an user-defined struct.
+type DefaultVaultInitParams struct {
 	Version              uint64
 	DelegatorIndex       uint64
 	SlasherIndex         uint64
@@ -39,10 +39,34 @@ type MantaStakingMiddlewareDefaultVaultInitParams struct {
 	VaultBeforeSlashHook common.Address
 }
 
+// OperatorSettings is an auto generated low-level Go binding around an user-defined struct.
+type OperatorSettings struct {
+	UnregisterTokenUnlockWindow *big.Int
+	RequiredOperatorStake       *big.Int
+	MinOperatorCommission       *big.Int
+	MaxOperatorCommission       *big.Int
+	MaxValidOperator            *big.Int
+}
+
+// RewardSettings is an auto generated low-level Go binding around an user-defined struct.
+type RewardSettings struct {
+	OperatorRewardDistributor common.Address
+	StakerRewardDistributor   common.Address
+}
+
+// SymbioticVaultSettings is an auto generated low-level Go binding around an user-defined struct.
+type SymbioticVaultSettings struct {
+	OperatorRegistry   common.Address
+	VaultConfiguration common.Address
+	EpochDuration      *big.Int
+	StakeToken         common.Address
+	DefaultVaultParams DefaultVaultInitParams
+}
+
 // MantaStakingMiddlewareMetaData contains all meta data concerning the MantaStakingMiddleware contract.
 var MantaStakingMiddlewareMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"constructor\",\"inputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"DEFAULT_ADMIN_ROLE\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"DEFAULT_VAULT_PARAMS\",\"inputs\":[],\"outputs\":[{\"name\":\"version\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"delegatorIndex\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"slasherIndex\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"vaultSlashBurner\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"vaultDefaultAdmin\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"vaultBeforeSlashHook\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"EPOCH_DURATION\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint48\",\"internalType\":\"uint48\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"OPERATOR_REGISTRY\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"REQUIRED_OPERATOR_STAKE\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"STAKE_TOKEN\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"UNREGISTER_TOKEN_UNLOCK_WINDOW\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"uint48\",\"internalType\":\"uint48\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"VAULT_CONFIGURATION\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"claimUnlockedToken\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"getRoleAdmin\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"grantRole\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"account\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"hasRole\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"account\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"initialize\",\"inputs\":[{\"name\":\"operatorRegistry_\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"vaultConfiguration_\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"epochDuration_\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"requiredOperatorStake_\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"stakeToken_\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"unregisterTokenUnlockWindow_\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"defaultVaultParams_\",\"type\":\"tuple\",\"internalType\":\"structMantaStakingMiddleware.DefaultVaultInitParams\",\"components\":[{\"name\":\"version\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"delegatorIndex\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"slasherIndex\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"vaultSlashBurner\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"vaultDefaultAdmin\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"vaultBeforeSlashHook\",\"type\":\"address\",\"internalType\":\"address\"}]}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"operatorTokenUnlockTimestamps\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint48\",\"internalType\":\"uint48\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"operators\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"vault\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"paused\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"pauseOperator\",\"inputs\":[{\"name\":\"operator\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"registerOperator\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"renounceRole\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"callerConfirmation\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"revokeRole\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"account\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"slash\",\"inputs\":[{\"name\":\"subnetwork\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"operator\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"captureTimestamp\",\"type\":\"uint48\",\"internalType\":\"uint48\"}],\"outputs\":[{\"name\":\"slashedAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"supportsInterface\",\"inputs\":[{\"name\":\"interfaceId\",\"type\":\"bytes4\",\"internalType\":\"bytes4\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"unpauseOperator\",\"inputs\":[{\"name\":\"operator\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"unregisterOperator\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"Initialized\",\"inputs\":[{\"name\":\"version\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OperatorPaused\",\"inputs\":[{\"name\":\"operator\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OperatorRegistered\",\"inputs\":[{\"name\":\"operator\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"},{\"name\":\"vault\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"},{\"name\":\"delegator\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"},{\"name\":\"slasher\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OperatorUnpaused\",\"inputs\":[{\"name\":\"operator\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OperatorUnregistered\",\"inputs\":[{\"name\":\"operator\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"RoleAdminChanged\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"previousAdminRole\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"newAdminRole\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"RoleGranted\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"account\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"sender\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"RoleRevoked\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"account\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"sender\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"AccessControlBadConfirmation\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"AccessControlUnauthorizedAccount\",\"inputs\":[{\"name\":\"account\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"neededRole\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}]},{\"type\":\"error\",\"name\":\"CannotClaimBeforeUnlock\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"CannotUnregisterPausedOperator\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"FailedToCreateVault\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidInitialization\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NotInitializing\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"OperatorAlreadyRegistered\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"OperatorIsNotPendingUnlock\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"OperatorIsPendingUnlock\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"OperatorNotRegistered\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"OperatorNotRegisteredToNetwork\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"ReentrancyGuardReentrantCall\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"SafeCastOverflowedUintDowncast\",\"inputs\":[{\"name\":\"bits\",\"type\":\"uint8\",\"internalType\":\"uint8\"},{\"name\":\"value\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"type\":\"error\",\"name\":\"SafeERC20FailedOperation\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"}]}]",
-	Bin: "0x6080604052348015600f57600080fd5b506016601a565b60ca565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a00805468010000000000000000900460ff161560695760405163f92ee8a960e01b815260040160405180910390fd5b80546001600160401b039081161460c75780546001600160401b0319166001600160401b0390811782556040519081527fc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d29060200160405180910390a15b50565b611be5806100d96000396000f3fe608060405234801561001057600080fd5b506004361061014d5760003560e01c806372f9adab116100c3578063a314db161161007c578063a314db1614610305578063a70b9f0c14610318578063a876b89a14610331578063c93c6db414610339578063d547741f146103ca578063f3f2c422146103dd57600080fd5b806372f9adab146102a957806381de864a146102bc57806383ce0322146102cf57806391d14854146102e2578063a0f98db6146102f5578063a217fddf146102fd57600080fd5b80632e5aaf33116101155780632e5aaf33146102245780632f2ff15d1461023757806336568abe1461024a57806337148a241461025d5780635d91c2a6146102705780636d942667146102a057600080fd5b806301ffc9a71461015257806313e7c9d81461017a5780631c39b672146101ce578063248a9ca3146101f95780632acde0981461021a575b600080fd5b610165610160366004611546565b610405565b60405190151581526020015b60405180910390f35b6101af61018836600461159c565b6008602052600090815260409020546001600160a01b03811690600160a01b900460ff1682565b604080516001600160a01b039093168352901515602083015201610171565b6007546101e1906001600160a01b031681565b6040516001600160a01b039091168152602001610171565b61020c6102073660046115b9565b61043c565b604051908152602001610171565b61022261045e565b005b61022261023236600461159c565b6105c5565b6102226102453660046115d2565b610690565b6102226102583660046115d2565b6106b2565b61022261026b36600461162f565b6106e5565b60015461028990600160d01b900465ffffffffffff1681565b60405165ffffffffffff9091168152602001610171565b61020c60065481565b6102226102b736600461159c565b6109e5565b6001546101e1906001600160a01b031681565b6000546101e1906001600160a01b031681565b6101656102f03660046115d2565b610aab565b610222610ae3565b61020c600081565b61020c610313366004611759565b610b9c565b60015461028990600160a01b900465ffffffffffff1681565b610222610cef565b60025460035460045460055461037e936001600160401b0380821694600160401b8304821694600160801b909304909116926001600160a01b03918216928216911686565b604080516001600160401b039788168152958716602087015293909516928401929092526001600160a01b039081166060840152908116608083015290911660a082015260c001610171565b6102226103d83660046115d2565b610e1e565b6102896103eb36600461159c565b60096020526000908152604090205465ffffffffffff1681565b60006001600160e01b03198216637965db0b60e01b148061043657506301ffc9a760e01b6001600160e01b03198316145b92915050565b6000908152600080516020611b70833981519152602052604090206001015490565b610466610e3a565b3360008181526009602052604090205465ffffffffffff161561049c5760405163574a3d2d60e11b815260040160405180910390fd5b336000908152600860205260409020546001600160a01b0316156104d3576040516342ee68b560e01b815260040160405180910390fd5b6104dc33610e72565b6006546007546104fb916001600160a01b039091169033903090610efd565b600080600061050933610f64565b6040805180820182526001600160a01b03858116808352600060208085018281523380845260088352928790209551865491511515600160a01b026001600160a81b0319909216908616171790945584519081529283015284811692820192909252908216606082015292955090935091507f46646bab0dd157a3684acf6b4684ec8f475dfa314fe44fb2db2c67ab3f865ee19060800160405180910390a1505050506105c36001600080516020611b9083398151915255565b565b6001600160a01b038082166000908152600860205260409020548291166105ff576040516325ec6c1f60e01b815260040160405180910390fd5b600061060a81611280565b6001600160a01b038316600090815260086020526040902054600160a01b900460ff161561068b576001600160a01b038316600081815260086020908152604091829020805460ff60a01b1916905590519182527fae02c1bd695006b6d891af37fdeefea45a10ebcc17071e3471787db4f177288591015b60405180910390a15b505050565b6106998261043c565b6106a281611280565b6106ac838361128a565b50505050565b6001600160a01b03811633146106db5760405163334bd91960e11b815260040160405180910390fd5b61068b8282611336565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a008054600160401b810460ff1615906001600160401b031660008115801561072a5750825b90506000826001600160401b031660011480156107465750303b155b905081158015610754575080155b156107725760405163f92ee8a960e01b815260040160405180910390fd5b845467ffffffffffffffff19166001178555831561079c57845460ff60401b1916600160401b1785555b6107a46113b2565b6107af60003361128a565b506107b86113ba565b8b6000806101000a8154816001600160a01b0302191690836001600160a01b031602179055508a600160006101000a8154816001600160a01b0302191690836001600160a01b0316021790555089600160146101000a81548165ffffffffffff021916908365ffffffffffff1602179055508860068190555087600760006101000a8154816001600160a01b0302191690836001600160a01b0316021790555085600260008201518160000160006101000a8154816001600160401b0302191690836001600160401b0316021790555060208201518160000160086101000a8154816001600160401b0302191690836001600160401b0316021790555060408201518160000160106101000a8154816001600160401b0302191690836001600160401b0316021790555060608201518160010160006101000a8154816001600160a01b0302191690836001600160a01b0316021790555060808201518160020160006101000a8154816001600160a01b0302191690836001600160a01b0316021790555060a08201518160030160006101000a8154816001600160a01b0302191690836001600160a01b03160217905550905050866001601a6101000a81548165ffffffffffff021916908365ffffffffffff16021790555083156109d757845460ff60401b19168555604051600181527fc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d29060200160405180910390a15b505050505050505050505050565b6001600160a01b03808216600090815260086020526040902054829116610a1f576040516325ec6c1f60e01b815260040160405180910390fd5b6000610a2a81611280565b6001600160a01b038316600090815260086020526040902054600160a01b900460ff1661068b576001600160a01b038316600081815260086020908152604091829020805460ff60a01b1916600160a01b17905590519182527fc5437eb8dd091f69800961953f2bb0bc16ae1ff2d3e52caa96796db65f8271da9101610682565b6000918252600080516020611b70833981519152602090815260408084206001600160a01b0393909316845291905290205460ff1690565b3360009081526009602052604081205465ffffffffffff169003610b1a57604051635e0580eb60e01b815260040160405180910390fd5b3360009081526009602052604090205465ffffffffffff16610b3a6113ca565b65ffffffffffff161015610b61576040516352d1770f60e01b815260040160405180910390fd5b600654600754610b7e916001600160a01b039091169033906113da565b336000908152600960205260409020805465ffffffffffff19169055565b6001600160a01b038084166000908152600860205260408120549091859116610bd8576040516325ec6c1f60e01b815260040160405180910390fd5b6000610be381611280565b6001600160a01b03808716600090815260086020908152604080832054815163b134427160e01b81529151941693849263b134427192600480820193918290030181865afa158015610c39573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610c5d91906117a1565b6040805160208101825260008152905163010d40ab60e11b81529192506001600160a01b0383169163021a815691610c9f918d918d918d918d91600401611804565b6020604051808303816000875af1158015610cbe573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610ce2919061184a565b9998505050505050505050565b336000818152600860205260409020546001600160a01b0316610d25576040516325ec6c1f60e01b815260040160405180910390fd5b610d2d610e3a565b33600090815260086020526040902054600160a01b900460ff1615610d645760405162417c2d60e11b815260040160405180910390fd5b33600090815260086020526040902080546001600160a81b0319169055600154600160d01b900465ffffffffffff16610d9b6113ca565b610da59190611863565b33600081815260096020908152604091829020805465ffffffffffff191665ffffffffffff9590951694909417909355519081527f6f42117a557500c705ddf040a619d86f39101e6b74ac20d7b3e5943ba473fc7f910160405180910390a1610e1b6001600080516020611b9083398151915255565b50565b610e278261043c565b610e3081611280565b6106ac8383611336565b600080516020611b90833981519152805460011901610e6c57604051633ee5aeb560e01b815260040160405180910390fd5b60029055565b6000546040516302910f8b60e31b81526001600160a01b038381166004830152909116906314887c5890602401602060405180830381865afa158015610ebc573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610ee09190611890565b610e1b57604051632c4b254960e01b815260040160405180910390fd5b6040516001600160a01b0384811660248301528381166044830152606482018390526106ac9186918216906323b872dd906084015b604051602081830303815290604052915060e01b6020820180516001600160e01b03838183161783525050505061140b565b60408051610160810182526007546001600160a01b0390811682526003548116602083015260015465ffffffffffff600160a01b9091041682840152600060608084018290526080840182905260a0840182905260045490921660c084015260e0830181905261010083018190526101208301819052610140830181905283516002808252928101909452928392839290918391816020016020820280368337505060045482519293506001600160a01b03169183915060009061102a5761102a6118b2565b60200260200101906001600160a01b031690816001600160a01b031681525050308160018151811061105e5761105e6118b2565b6001600160a01b039283166020918202929092018101919091526040805160c0810182526004548416606082018181526005548616608084015260a083018290528252818401869052938a168183015281518083018352600181850190815281528251610100810184526002546001600160401b03168152808501959095528251919490936000939192918301916110f8918991016118c8565b6040516020818303038152906040528152602001600260000160089054906101000a90046001600160401b03166001600160401b031681526020018460405160200161114491906119b0565b60408051808303601f1901815291815290825260016020808401829052600254600160801b90046001600160401b031684840152825187515115158183015283518082039092018252830183526060909301929092529054905163312249f960e21b81529192506001600160a01b03169063c48927e4906111c9908490600401611a44565b6060604051808303816000875af11580156111e8573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061120c9190611b22565b919950975095506001600160a01b038816158061123057506001600160a01b038716155b8061124257506001600160a01b038616155b15611260576040516307cbdadb60e11b815260040160405180910390fd5b50505050509193909250565b6001600080516020611b9083398151915255565b610e1b8133611481565b6000600080516020611b708339815191526112a58484610aab565b611325576000848152602082815260408083206001600160a01b03871684529091529020805460ff191660011790556112db3390565b6001600160a01b0316836001600160a01b0316857f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d60405160405180910390a46001915050610436565b6000915050610436565b5092915050565b6000600080516020611b708339815191526113518484610aab565b15611325576000848152602082815260408083206001600160a01b0387168085529252808320805460ff1916905551339287917ff6391f5c32d9c69d2a47ea670b442974b53935d1edc7fd64eb21e047a839171b9190a46001915050610436565b6105c36114be565b6113c26114be565b6105c3611507565b60006113d54261150f565b905090565b6040516001600160a01b0383811660248301526044820183905261068b91859182169063a9059cbb90606401610f32565b600080602060008451602086016000885af18061142e576040513d6000823e3d81fd5b50506000513d91508115611446578060011415611453565b6001600160a01b0384163b155b156106ac57604051635274afe760e01b81526001600160a01b03851660048201526024015b60405180910390fd5b61148b8282610aab565b6114ba5760405163e2517d3f60e01b81526001600160a01b038216600482015260248101839052604401611478565b5050565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a0054600160401b900460ff166105c357604051631afcd79f60e31b815260040160405180910390fd5b61126c6114be565b600065ffffffffffff821115611542576040516306dfcc6560e41b81526030600482015260248101839052604401611478565b5090565b60006020828403121561155857600080fd5b81356001600160e01b03198116811461157057600080fd5b9392505050565b6001600160a01b0381168114610e1b57600080fd5b803561159781611577565b919050565b6000602082840312156115ae57600080fd5b813561157081611577565b6000602082840312156115cb57600080fd5b5035919050565b600080604083850312156115e557600080fd5b8235915060208301356115f781611577565b809150509250929050565b803565ffffffffffff8116811461159757600080fd5b80356001600160401b038116811461159757600080fd5b600080600080600080600087890361018081121561164c57600080fd5b883561165781611577565b9750602089013561166781611577565b965061167560408a01611602565b955060608901359450608089013561168c81611577565b935061169a60a08a01611602565b925060c060bf19820112156116ae57600080fd5b5060405160c081018181106001600160401b03821117156116df57634e487b7160e01b600052604160045260246000fd5b6040526116ee60c08a01611618565b81526116fc60e08a01611618565b602082015261170e6101008a01611618565b60408201526117206101208a0161158c565b60608201526117326101408a0161158c565b60808201526117446101608a0161158c565b60a08201528091505092959891949750929550565b6000806000806080858703121561176f57600080fd5b84359350602085013561178181611577565b92506040850135915061179660608601611602565b905092959194509250565b6000602082840312156117b357600080fd5b815161157081611577565b6000815180845260005b818110156117e4576020818501810151868301820152016117c8565b506000602082860101526020601f19601f83011685010191505092915050565b85815260018060a01b038516602082015283604082015265ffffffffffff8316606082015260a06080820152600061183f60a08301846117be565b979650505050505050565b60006020828403121561185c57600080fd5b5051919050565b65ffffffffffff81811683821601908082111561132f57634e487b7160e01b600052601160045260246000fd5b6000602082840312156118a257600080fd5b8151801515811461157057600080fd5b634e487b7160e01b600052603260045260246000fd5b81516001600160a01b03168152610160810160208301516118f460208401826001600160a01b03169052565b50604083015161190e604084018265ffffffffffff169052565b506060830151611922606084018215159052565b506080830151611936608084018215159052565b5060a083015160a083015260c083015161195b60c08401826001600160a01b03169052565b5060e083015161197660e08401826001600160a01b03169052565b50610100838101516001600160a01b0390811691840191909152610120808501518216908401526101409384015116929091019190915290565b6020808252825180516001600160a01b039081168484015281830151811660408086019190915290910151811660608401528382015160a06080850152805160c085018190526000939291830191849160e08701905b80841015611a2857845183168252938501936001939093019290850190611a06565b5060408801516001600160a01b03811660a0890152945061183f565b60208152611a5e6020820183516001600160401b03169052565b60006020830151611a7a60408401826001600160a01b03169052565b506040830151610100806060850152611a976101208501836117be565b91506060850151611ab360808601826001600160401b03169052565b506080850151601f19808685030160a0870152611ad084836117be565b935060a08701519150611ae760c087018315159052565b60c08701516001600160401b03811660e0880152915060e0870151915080868503018387015250611b1883826117be565b9695505050505050565b600080600060608486031215611b3757600080fd5b8351611b4281611577565b6020850151909350611b5381611577565b6040850151909250611b6481611577565b80915050925092509256fe02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b6268009b779b17422d0df92223018b32b4d1fa46e071723d6817e2486d003becc55f00a2646970667358221220c6078f12275d958856c1e5f7d5280a3557f9547065dcc95db834df588547079e64736f6c63430008190033",
+	ABI: "[{\"type\":\"constructor\",\"inputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"DEFAULT_ADMIN_ROLE\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"REWARD_UPDATER_ROLE\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"claimUnlockedToken\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"distributeRewards\",\"inputs\":[{\"name\":\"network\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"operatorRewardAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"stakerRewardAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"captureTimestamp\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"operatorRewardRoot\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"getRoleAdmin\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"grantRole\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"account\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"hasRole\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"account\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"initialize\",\"inputs\":[{\"name\":\"symbioticVaultSettings_\",\"type\":\"tuple\",\"internalType\":\"structSymbioticVaultSettings\",\"components\":[{\"name\":\"operatorRegistry\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"vaultConfiguration\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"epochDuration\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"stakeToken\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"defaultVaultParams\",\"type\":\"tuple\",\"internalType\":\"structDefaultVaultInitParams\",\"components\":[{\"name\":\"version\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"delegatorIndex\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"slasherIndex\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"vaultSlashBurner\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"vaultDefaultAdmin\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"vaultBeforeSlashHook\",\"type\":\"address\",\"internalType\":\"address\"}]}]},{\"name\":\"operatorSettings_\",\"type\":\"tuple\",\"internalType\":\"structOperatorSettings\",\"components\":[{\"name\":\"unregisterTokenUnlockWindow\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"requiredOperatorStake\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"minOperatorCommission\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"maxOperatorCommission\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"maxValidOperator\",\"type\":\"uint48\",\"internalType\":\"uint48\"}]},{\"name\":\"rewardSettings_\",\"type\":\"tuple\",\"internalType\":\"structRewardSettings\",\"components\":[{\"name\":\"operatorRewardDistributor\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"stakerRewardDistributor\",\"type\":\"address\",\"internalType\":\"address\"}]}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"operatorNameExists\",\"inputs\":[{\"name\":\"\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"operatorSettings\",\"inputs\":[],\"outputs\":[{\"name\":\"unregisterTokenUnlockWindow\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"requiredOperatorStake\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"minOperatorCommission\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"maxOperatorCommission\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"maxValidOperator\",\"type\":\"uint48\",\"internalType\":\"uint48\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"operatorTokenUnlockTimestamps\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"uint48\",\"internalType\":\"uint48\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"operators\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"vault\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"paused\",\"type\":\"bool\",\"internalType\":\"bool\"},{\"name\":\"operatorName\",\"type\":\"string\",\"internalType\":\"string\"},{\"name\":\"rewardAddress\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"commission\",\"type\":\"uint48\",\"internalType\":\"uint48\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"pauseOperator\",\"inputs\":[{\"name\":\"operator\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"registerOperator\",\"inputs\":[{\"name\":\"operatorName\",\"type\":\"string\",\"internalType\":\"string\"},{\"name\":\"rewardAddress\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"commission\",\"type\":\"uint48\",\"internalType\":\"uint48\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"renounceRole\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"callerConfirmation\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"revokeRole\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"account\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"rewardSettings\",\"inputs\":[],\"outputs\":[{\"name\":\"operatorRewardDistributor\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"stakerRewardDistributor\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"slash\",\"inputs\":[{\"name\":\"subnetwork\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"},{\"name\":\"operator\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"captureTimestamp\",\"type\":\"uint48\",\"internalType\":\"uint48\"}],\"outputs\":[{\"name\":\"slashedAmount\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"supportsInterface\",\"inputs\":[{\"name\":\"interfaceId\",\"type\":\"bytes4\",\"internalType\":\"bytes4\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"symbioticVaultSettings\",\"inputs\":[],\"outputs\":[{\"name\":\"operatorRegistry\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"vaultConfiguration\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"epochDuration\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"stakeToken\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"defaultVaultParams\",\"type\":\"tuple\",\"internalType\":\"structDefaultVaultInitParams\",\"components\":[{\"name\":\"version\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"delegatorIndex\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"slasherIndex\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"vaultSlashBurner\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"vaultDefaultAdmin\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"vaultBeforeSlashHook\",\"type\":\"address\",\"internalType\":\"address\"}]}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"unpauseOperator\",\"inputs\":[{\"name\":\"operator\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"unregisterOperator\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"updateOperatorSettings\",\"inputs\":[{\"name\":\"operatorSettings_\",\"type\":\"tuple\",\"internalType\":\"structOperatorSettings\",\"components\":[{\"name\":\"unregisterTokenUnlockWindow\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"requiredOperatorStake\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"minOperatorCommission\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"maxOperatorCommission\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"maxValidOperator\",\"type\":\"uint48\",\"internalType\":\"uint48\"}]}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"updateRewardSettings\",\"inputs\":[{\"name\":\"rewardSettings_\",\"type\":\"tuple\",\"internalType\":\"structRewardSettings\",\"components\":[{\"name\":\"operatorRewardDistributor\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"stakerRewardDistributor\",\"type\":\"address\",\"internalType\":\"address\"}]}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"updateSymbioticVaultSettings\",\"inputs\":[{\"name\":\"symbioticVaultSettings_\",\"type\":\"tuple\",\"internalType\":\"structSymbioticVaultSettings\",\"components\":[{\"name\":\"operatorRegistry\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"vaultConfiguration\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"epochDuration\",\"type\":\"uint48\",\"internalType\":\"uint48\"},{\"name\":\"stakeToken\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"defaultVaultParams\",\"type\":\"tuple\",\"internalType\":\"structDefaultVaultInitParams\",\"components\":[{\"name\":\"version\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"delegatorIndex\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"slasherIndex\",\"type\":\"uint64\",\"internalType\":\"uint64\"},{\"name\":\"vaultSlashBurner\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"vaultDefaultAdmin\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"vaultBeforeSlashHook\",\"type\":\"address\",\"internalType\":\"address\"}]}]}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"Initialized\",\"inputs\":[{\"name\":\"version\",\"type\":\"uint64\",\"indexed\":false,\"internalType\":\"uint64\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OperatorPaused\",\"inputs\":[{\"name\":\"operator\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OperatorRegistered\",\"inputs\":[{\"name\":\"operator\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"},{\"name\":\"operatorName\",\"type\":\"string\",\"indexed\":false,\"internalType\":\"string\"},{\"name\":\"rewardAddress\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"},{\"name\":\"commission\",\"type\":\"uint48\",\"indexed\":false,\"internalType\":\"uint48\"},{\"name\":\"vault\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OperatorUnpaused\",\"inputs\":[{\"name\":\"operator\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OperatorUnregistered\",\"inputs\":[{\"name\":\"operator\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"RoleAdminChanged\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"previousAdminRole\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"newAdminRole\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"RoleGranted\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"account\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"sender\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"RoleRevoked\",\"inputs\":[{\"name\":\"role\",\"type\":\"bytes32\",\"indexed\":true,\"internalType\":\"bytes32\"},{\"name\":\"account\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"sender\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"AccessControlBadConfirmation\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"AccessControlUnauthorizedAccount\",\"inputs\":[{\"name\":\"account\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"neededRole\",\"type\":\"bytes32\",\"internalType\":\"bytes32\"}]},{\"type\":\"error\",\"name\":\"CannotClaimBeforeUnlock\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"CannotUnregisterPausedOperator\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"FailedToCreateVault\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidCommission\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"InvalidInitialization\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NotInitializing\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"OperatorAlreadyRegistered\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"OperatorIsNotPendingUnlock\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"OperatorIsPendingUnlock\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"OperatorNameAlreadyExists\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"OperatorNotRegistered\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"OperatorNotRegisteredToSymbiotic\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"ReentrancyGuardReentrantCall\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"SafeCastOverflowedUintDowncast\",\"inputs\":[{\"name\":\"bits\",\"type\":\"uint8\",\"internalType\":\"uint8\"},{\"name\":\"value\",\"type\":\"uint256\",\"internalType\":\"uint256\"}]},{\"type\":\"error\",\"name\":\"SafeERC20FailedOperation\",\"inputs\":[{\"name\":\"token\",\"type\":\"address\",\"internalType\":\"address\"}]}]",
+	Bin: "0x6080604052348015600f57600080fd5b506016601a565b60ca565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a00805468010000000000000000900460ff161560695760405163f92ee8a960e01b815260040160405180910390fd5b80546001600160401b039081161460c75780546001600160401b0319166001600160401b0390811782556040519081527fc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d29060200160405180910390a15b50565b612630806100d96000396000f3fe608060405234801561001057600080fd5b50600436106101735760003560e01c806372aef6bf116100de578063a217fddf11610097578063c15025c611610071578063c15025c61461049f578063d547741f146104d9578063f3f2c422146104ec578063ff4e42d71461052b57600080fd5b8063a217fddf1461047c578063a314db1614610484578063a876b89a1461049757600080fd5b806372aef6bf146103bd57806372f9adab146104285780637a6efb691461043b57806391d148541461044e578063989bfec514610461578063a0f98db61461047457600080fd5b80631d6a65d7116101305780631d6a65d71461033b578063248a9ca31461035e5780632e5aaf33146103715780632f2ff15d1461038457806336568abe1461039757806360ba757d146103aa57600080fd5b806301ffc9a7146101785780630c761c97146101a057806312f09ad7146101b557806313e7c9d8146101c85780631a69d9c8146101ec5780631b72a9ff14610221575b600080fd5b61018b610186366004611a4e565b61053e565b60405190151581526020015b60405180910390f35b6101b36101ae366004611b96565b610575565b005b6101b36101c3366004611c32565b6105b6565b6101db6101d6366004611c4e565b61063a565b604051610197959493929190611cbb565b6102137f9188644bf0c7a694e572b54fd40005e1230f80a50c59be6fb567a312ab5a1d4d81565b604051908152602001610197565b6000546001546002546040805160c0810182526003546001600160401b038082168352600160401b820481166020840152600160801b90910416918101919091526004546001600160a01b03908116606083015260055481166080830152600654811660a08301526102ab9481169381811693600160a01b90910465ffffffffffff169291169085565b604080516001600160a01b03968716815294861660208087019190915265ffffffffffff9094168582015291851660608086019190915281516001600160401b0390811660808088019190915294830151811660a080880191909152938301511660c0860152810151851660e0850152918201518416610100840152015190911661012082015261014001610197565b61018b610349366004611d05565b600d6020526000908152604090205460ff1681565b61021361036c366004611d05565b610716565b6101b361037f366004611c4e565b610738565b6101b3610392366004611d1e565b610803565b6101b36103a5366004611d1e565b610825565b6101b36103b8366004611d4e565b610858565b6007546008546009546103ef9265ffffffffffff908116929180821691600160301b8204811691600160601b90041685565b6040805165ffffffffffff968716815260208101959095529285169284019290925283166060830152909116608082015260a001610197565b6101b3610436366004611c4e565b610ae3565b6101b3610449366004611f0d565b610ba9565b61018b61045c366004611d1e565b610cc4565b6101b361046f366004611f2a565b610cfc565b6101b3610e3a565b610213600081565b610213610492366004611f6a565b610ef3565b6101b3611046565b600a54600b546104b9916001600160a01b03908116911682565b604080516001600160a01b03938416815292909116602083015201610197565b6101b36104e7366004611d1e565b61118e565b6105146104fa366004611c4e565b600e6020526000908152604090205465ffffffffffff1681565b60405165ffffffffffff9091168152602001610197565b6101b3610539366004611fb2565b6111aa565b60006001600160e01b03198216637965db0b60e01b148061056f57506301ffc9a760e01b6001600160e01b03198316145b92915050565b600061058081611302565b508051600a80546001600160a01b03199081166001600160a01b0393841617909155602090920151600b80549093169116179055565b60006105c181611302565b5080516007805465ffffffffffff191665ffffffffffff928316179055602082015160085560408201516009805460608501516080909501519284166bffffffffffffffffffffffff1990911617600160301b948416949094029390931765ffffffffffff60601b1916600160601b9190921602179055565b600c60205260009081526040902080546001820180546001600160a01b03831693600160a01b90930460ff1692919061067290612015565b80601f016020809104026020016040519081016040528092919081815260200182805461069e90612015565b80156106eb5780601f106106c0576101008083540402835291602001916106eb565b820191906000526020600020905b8154815290600101906020018083116106ce57829003601f168201915b505050600290930154919250506001600160a01b0381169065ffffffffffff600160a01b9091041685565b60009081526000805160206125bb833981519152602052604090206001015490565b6001600160a01b038082166000908152600c6020526040902054829116610772576040516325ec6c1f60e01b815260040160405180910390fd5b600061077d81611302565b6001600160a01b0383166000908152600c6020526040902054600160a01b900460ff16156107fe576001600160a01b0383166000818152600c6020908152604091829020805460ff60a01b1916905590519182527fae02c1bd695006b6d891af37fdeefea45a10ebcc17071e3471787db4f177288591015b60405180910390a15b505050565b61080c82610716565b61081581611302565b61081f838361130c565b50505050565b6001600160a01b038116331461084e5760405163334bd91960e11b815260040160405180910390fd5b6107fe82826113b8565b610860611434565b336000818152600e602052604090205465ffffffffffff16156108965760405163574a3d2d60e11b815260040160405180910390fd5b6000846040516020016108a9919061204f565b60408051601f1981840301815291815281516020928301206000818152600d90935291205490915060ff16156108f2576040516326375da160e11b815260040160405180910390fd5b6000818152600d60209081526040808320805460ff19166001179055338352600c9091529020546001600160a01b031615610940576040516342ee68b560e01b815260040160405180910390fd5b60095465ffffffffffff9081169084161080610970575060095465ffffffffffff600160301b9091048116908416115b1561098e5760405163dc81db8560e01b815260040160405180910390fd5b6109973361146c565b6008546002546109b6916001600160a01b0390911690339030906114f7565b60006109c13361155e565b50506040805160a0810182526001600160a01b038084168252600060208084018281528486018d81528c8516606087015265ffffffffffff8c166080870152338452600c909252949091208351815495511515600160a01b026001600160a81b03199096169316929092179390931781559151929350916001820190610a4790826120bb565b5060608201516002909101805460809093015165ffffffffffff16600160a01b026001600160d01b03199093166001600160a01b03909216919091179190911790556040517f4f8ede3304cdb9db4ee7e3e1c7e1a12d293f88c81465a874846a844ff1de65b890610ac1903390899089908990879061217a565b60405180910390a15050506107fe60016000805160206125db83398151915255565b6001600160a01b038082166000908152600c6020526040902054829116610b1d576040516325ec6c1f60e01b815260040160405180910390fd5b6000610b2881611302565b6001600160a01b0383166000908152600c6020526040902054600160a01b900460ff166107fe576001600160a01b0383166000818152600c6020908152604091829020805460ff60a01b1916600160a01b17905590519182527fc5437eb8dd091f69800961953f2bb0bc16ae1ff2d3e52caa96796db65f8271da91016107f5565b6000610bb481611302565b508051600080546001600160a01b039283166001600160a01b0319918216179091556020808401516001805460408088015165ffffffffffff16600160a01b026001600160d01b0319909216938716939093171790556060808601516002805491871691861691909117905560809586015180516003805495830151948301516001600160401b03908116600160801b0267ffffffffffffffff60801b19968216600160401b026fffffffffffffffffffffffffffffffff1990981691909316179590951793909316929092179092559081015160048054918516918416919091179055928301516005805491841691831691909117905560a09092015160068054919092169216919091179055565b60009182526000805160206125bb833981519152602090815260408084206001600160a01b0393909316845291905290205460ff1690565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a008054600160401b810460ff1615906001600160401b0316600081158015610d415750825b90506000826001600160401b03166001148015610d5d5750303b155b905081158015610d6b575080155b15610d895760405163f92ee8a960e01b815260040160405180910390fd5b845467ffffffffffffffff191660011785558315610db357845460ff60401b1916600160401b1785555b610dbb61186e565b610dc660003361130c565b50610dcf611878565b610dd888610ba9565b610de1876105b6565b610dea86610575565b8315610e3057845460ff60401b19168555604051600181527fc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d29060200160405180910390a15b5050505050505050565b336000908152600e602052604081205465ffffffffffff169003610e7157604051635e0580eb60e01b815260040160405180910390fd5b336000908152600e602052604090205465ffffffffffff16610e91611888565b65ffffffffffff161015610eb8576040516352d1770f60e01b815260040160405180910390fd5b600854600254610ed5916001600160a01b03909116903390611898565b336000908152600e60205260409020805465ffffffffffff19169055565b6001600160a01b038084166000908152600c60205260408120549091859116610f2f576040516325ec6c1f60e01b815260040160405180910390fd5b6000610f3a81611302565b6001600160a01b038087166000908152600c6020908152604080832054815163b134427160e01b81529151941693849263b134427192600480820193918290030181865afa158015610f90573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610fb491906121c3565b6040805160208101825260008152905163010d40ab60e11b81529192506001600160a01b0383169163021a815691610ff6918d918d918d918d916004016121e0565b6020604051808303816000875af1158015611015573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906110399190612226565b9998505050505050505050565b336000818152600c60205260409020546001600160a01b031661107c576040516325ec6c1f60e01b815260040160405180910390fd5b611084611434565b336000908152600c6020526040902054600160a01b900460ff16156110bb5760405162417c2d60e11b815260040160405180910390fd5b336000908152600c6020526040812080546001600160a81b0319168155906110e66001830182611a04565b5060020180546001600160d01b031916905560075465ffffffffffff1661110b611888565b611115919061223f565b336000818152600e6020908152604091829020805465ffffffffffff191665ffffffffffff9590951694909417909355519081527f6f42117a557500c705ddf040a619d86f39101e6b74ac20d7b3e5943ba473fc7f910160405180910390a161118b60016000805160206125db83398151915255565b50565b61119782610716565b6111a081611302565b61081f83836113b8565b7f9188644bf0c7a694e572b54fd40005e1230f80a50c59be6fb567a312ab5a1d4d6111d481611302565b6000836000604051806020016040528060008152506040518060200160405280600081525060405160200161120c949392919061226c565b60408051808303601f1901815290829052600a546348a78da760e01b83526001600160a01b038b811660048501528a81166024850152604484018a90526064840187905291935016906348a78da790608401600060405180830381600087803b15801561127857600080fd5b505af115801561128c573d6000803e3d6000fd5b5050600b5460405163239723ed60e01b81526001600160a01b03909116925063239723ed91506112c6908b908b908a9087906004016122a8565b600060405180830381600087803b1580156112e057600080fd5b505af11580156112f4573d6000803e3d6000fd5b505050505050505050505050565b61118b81336118c9565b60006000805160206125bb8339815191526113278484610cc4565b6113a7576000848152602082815260408083206001600160a01b03871684529091529020805460ff1916600117905561135d3390565b6001600160a01b0316836001600160a01b0316857f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d60405160405180910390a4600191505061056f565b600091505061056f565b5092915050565b60006000805160206125bb8339815191526113d38484610cc4565b156113a7576000848152602082815260408083206001600160a01b0387168085529252808320805460ff1916905551339287917ff6391f5c32d9c69d2a47ea670b442974b53935d1edc7fd64eb21e047a839171b9190a4600191505061056f565b6000805160206125db83398151915280546001190161146657604051633ee5aeb560e01b815260040160405180910390fd5b60029055565b6000546040516302910f8b60e31b81526001600160a01b038381166004830152909116906314887c5890602401602060405180830381865afa1580156114b6573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906114da91906122e5565b61118b57604051635f2b0a4960e01b815260040160405180910390fd5b6040516001600160a01b03848116602483015283811660448301526064820183905261081f9186918216906323b872dd906084015b604051602081830303815290604052915060e01b6020820180516001600160e01b03838183161783525050505061190b565b6040805161016081018252600280546001600160a01b0390811683526004548116602084015260015465ffffffffffff600160a01b9091041683850152600060608085018290526080850182905260a0850182905260055490921660c085015260e0840181905261010084018190526101208401819052610140840181905284518381529182019094528392839290918391816020016020820280368337505060055482519293506001600160a01b03169183915060009061162257611622612307565b60200260200101906001600160a01b031690816001600160a01b031681525050308160018151811061165657611656612307565b6001600160a01b039283166020918202929092018101919091526040805160c0810182526005548416606082018181526006548616608084015260a083018290528252818401869052938a168183015281518083018352600181850190815281528251610100810184526003546001600160401b03168152808501959095528251919490936000939192918301916116f09189910161231d565b60408051808303601f19018152918152908252600354600160401b90046001600160401b03166020808401919091528151929091019161173291879101612405565b60408051808303601f1901815291815290825260016020808401829052600354600160801b90046001600160401b031684840152825187515115158183015283518082039092018252830183526060909301929092529054905163312249f960e21b81529192506001600160a01b03169063c48927e4906117b7908490600401612499565b6060604051808303816000875af11580156117d6573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906117fa919061256d565b919950975095506001600160a01b038816158061181e57506001600160a01b038716155b8061183057506001600160a01b038616155b1561184e576040516307cbdadb60e11b815260040160405180910390fd5b50505050509193909250565b60016000805160206125db83398151915255565b61187661197c565b565b61188061197c565b6118766119c5565b6000611893426119cd565b905090565b6040516001600160a01b038381166024830152604482018390526107fe91859182169063a9059cbb9060640161152c565b6118d38282610cc4565b6119075760405163e2517d3f60e01b81526001600160a01b0382166004820152602481018390526044015b60405180910390fd5b5050565b600080602060008451602086016000885af18061192e576040513d6000823e3d81fd5b50506000513d91508115611946578060011415611953565b6001600160a01b0384163b155b1561081f57604051635274afe760e01b81526001600160a01b03851660048201526024016118fe565b7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a0054600160401b900460ff1661187657604051631afcd79f60e31b815260040160405180910390fd5b61185a61197c565b600065ffffffffffff821115611a00576040516306dfcc6560e41b815260306004820152602481018390526044016118fe565b5090565b508054611a1090612015565b6000825580601f10611a20575050565b601f01602090049060005260206000209081019061118b91905b80821115611a005760008155600101611a3a565b600060208284031215611a6057600080fd5b81356001600160e01b031981168114611a7857600080fd5b9392505050565b634e487b7160e01b600052604160045260246000fd5b60405160a081016001600160401b0381118282101715611ab757611ab7611a7f565b60405290565b60405160c081016001600160401b0381118282101715611ab757611ab7611a7f565b604051601f8201601f191681016001600160401b0381118282101715611b0757611b07611a7f565b604052919050565b6001600160a01b038116811461118b57600080fd5b8035611b2f81611b0f565b919050565b600060408284031215611b4657600080fd5b604051604081018181106001600160401b0382111715611b6857611b68611a7f565b6040529050808235611b7981611b0f565b81526020830135611b8981611b0f565b6020919091015292915050565b600060408284031215611ba857600080fd5b611a788383611b34565b803565ffffffffffff81168114611b2f57600080fd5b600060a08284031215611bda57600080fd5b611be2611a95565b9050611bed82611bb2565b815260208201356020820152611c0560408301611bb2565b6040820152611c1660608301611bb2565b6060820152611c2760808301611bb2565b608082015292915050565b600060a08284031215611c4457600080fd5b611a788383611bc8565b600060208284031215611c6057600080fd5b8135611a7881611b0f565b60005b83811015611c86578181015183820152602001611c6e565b50506000910152565b60008151808452611ca7816020860160208601611c6b565b601f01601f19169290920160200192915050565b600060018060a01b038088168352861515602084015260a06040840152611ce560a0840187611c8f565b941660608301525065ffffffffffff919091166080909101529392505050565b600060208284031215611d1757600080fd5b5035919050565b60008060408385031215611d3157600080fd5b823591506020830135611d4381611b0f565b809150509250929050565b600080600060608486031215611d6357600080fd5b83356001600160401b0380821115611d7a57600080fd5b818601915086601f830112611d8e57600080fd5b8135602082821115611da257611da2611a7f565b611db4601f8301601f19168201611adf565b92508183528881838601011115611dca57600080fd5b81818501828501376000818385010152829650611de8818901611b24565b955050505050611dfa60408501611bb2565b90509250925092565b80356001600160401b0381168114611b2f57600080fd5b6000818303610140811215611e2e57600080fd5b611e36611a95565b91508235611e4381611b0f565b82526020830135611e5381611b0f565b6020830152611e6460408401611bb2565b60408301526060830135611e7781611b0f565b606083015260c0607f1982011215611e8e57600080fd5b50611e97611abd565b611ea360808401611e03565b8152611eb160a08401611e03565b6020820152611ec260c08401611e03565b604082015260e0830135611ed581611b0f565b6060820152610100830135611ee981611b0f565b6080820152610120830135611efd81611b0f565b60a0820152608082015292915050565b60006101408284031215611f2057600080fd5b611a788383611e1a565b60008060006102208486031215611f4057600080fd5b611f4a8585611e1a565b9250611f5a856101408601611bc8565b9150611dfa856101e08601611b34565b60008060008060808587031215611f8057600080fd5b843593506020850135611f9281611b0f565b925060408501359150611fa760608601611bb2565b905092959194509250565b60008060008060008060c08789031215611fcb57600080fd5b8635611fd681611b0f565b95506020870135611fe681611b0f565b9450604087013593506060870135925061200260808801611bb2565b915060a087013590509295509295509295565b600181811c9082168061202957607f821691505b60208210810361204957634e487b7160e01b600052602260045260246000fd5b50919050565b60008251612061818460208701611c6b565b9190910192915050565b601f8211156107fe576000816000526020600020601f850160051c810160208610156120945750805b601f850160051c820191505b818110156120b3578281556001016120a0565b505050505050565b81516001600160401b038111156120d4576120d4611a7f565b6120e8816120e28454612015565b8461206b565b602080601f83116001811461211d57600084156121055750858301515b600019600386901b1c1916600185901b1785556120b3565b600085815260208120601f198616915b8281101561214c5788860151825594840194600190910190840161212d565b508582101561216a5787850151600019600388901b60f8161c191681555b5050505050600190811b01905550565b600060018060a01b03808816835260a0602084015261219c60a0840188611c8f565b958116604084015265ffffffffffff94909416606083015250911660809091015292915050565b6000602082840312156121d557600080fd5b8151611a7881611b0f565b85815260018060a01b038516602082015283604082015265ffffffffffff8316606082015260a06080820152600061221b60a0830184611c8f565b979650505050505050565b60006020828403121561223857600080fd5b5051919050565b65ffffffffffff8181168382160190808211156113b157634e487b7160e01b600052601160045260246000fd5b65ffffffffffff8516815260ff841660208201526080604082015260006122966080830185611c8f565b828103606084015261221b8185611c8f565b6001600160a01b03858116825284166020820152604081018390526080606082018190526000906122db90830184611c8f565b9695505050505050565b6000602082840312156122f757600080fd5b81518015158114611a7857600080fd5b634e487b7160e01b600052603260045260246000fd5b81516001600160a01b031681526101608101602083015161234960208401826001600160a01b03169052565b506040830151612363604084018265ffffffffffff169052565b506060830151612377606084018215159052565b50608083015161238b608084018215159052565b5060a083015160a083015260c08301516123b060c08401826001600160a01b03169052565b5060e08301516123cb60e08401826001600160a01b03169052565b50610100838101516001600160a01b0390811691840191909152610120808501518216908401526101409384015116929091019190915290565b6020808252825180516001600160a01b039081168484015281830151811660408086019190915290910151811660608401528382015160a06080850152805160c085018190526000939291830191849160e08701905b8084101561247d5784518316825293850193600193909301929085019061245b565b5060408801516001600160a01b03811660a0890152945061221b565b602081526124b36020820183516001600160401b03169052565b600060208301516124cf60408401826001600160a01b03169052565b5060408301516101008060608501526124ec610120850183611c8f565b9150606085015161250860808601826001600160401b03169052565b506080850151601f19808685030160a08701526125258483611c8f565b935060a0870151915061253c60c087018315159052565b60c08701516001600160401b03811660e0880152915060e08701519150808685030183870152506122db8382611c8f565b60008060006060848603121561258257600080fd5b835161258d81611b0f565b602085015190935061259e81611b0f565b60408501519092506125af81611b0f565b80915050925092509256fe02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b6268009b779b17422d0df92223018b32b4d1fa46e071723d6817e2486d003becc55f00a2646970667358221220d1d5eb7c100fa28805c0e6d7498aa798201bf74a6967a8a2464cf8d9a8f1339d64736f6c63430008190033",
 }
 
 // MantaStakingMiddlewareABI is the input ABI used to generate the binding from.
@@ -243,255 +267,35 @@ func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) DEFAULTADMIN
 	return _MantaStakingMiddleware.Contract.DEFAULTADMINROLE(&_MantaStakingMiddleware.CallOpts)
 }
 
-// DEFAULTVAULTPARAMS is a free data retrieval call binding the contract method 0xc93c6db4.
+// REWARDUPDATERROLE is a free data retrieval call binding the contract method 0x1a69d9c8.
 //
-// Solidity: function DEFAULT_VAULT_PARAMS() view returns(uint64 version, uint64 delegatorIndex, uint64 slasherIndex, address vaultSlashBurner, address vaultDefaultAdmin, address vaultBeforeSlashHook)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) DEFAULTVAULTPARAMS(opts *bind.CallOpts) (struct {
-	Version              uint64
-	DelegatorIndex       uint64
-	SlasherIndex         uint64
-	VaultSlashBurner     common.Address
-	VaultDefaultAdmin    common.Address
-	VaultBeforeSlashHook common.Address
-}, error) {
+// Solidity: function REWARD_UPDATER_ROLE() view returns(bytes32)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) REWARDUPDATERROLE(opts *bind.CallOpts) ([32]byte, error) {
 	var out []interface{}
-	err := _MantaStakingMiddleware.contract.Call(opts, &out, "DEFAULT_VAULT_PARAMS")
-
-	outstruct := new(struct {
-		Version              uint64
-		DelegatorIndex       uint64
-		SlasherIndex         uint64
-		VaultSlashBurner     common.Address
-		VaultDefaultAdmin    common.Address
-		VaultBeforeSlashHook common.Address
-	})
-	if err != nil {
-		return *outstruct, err
-	}
-
-	outstruct.Version = *abi.ConvertType(out[0], new(uint64)).(*uint64)
-	outstruct.DelegatorIndex = *abi.ConvertType(out[1], new(uint64)).(*uint64)
-	outstruct.SlasherIndex = *abi.ConvertType(out[2], new(uint64)).(*uint64)
-	outstruct.VaultSlashBurner = *abi.ConvertType(out[3], new(common.Address)).(*common.Address)
-	outstruct.VaultDefaultAdmin = *abi.ConvertType(out[4], new(common.Address)).(*common.Address)
-	outstruct.VaultBeforeSlashHook = *abi.ConvertType(out[5], new(common.Address)).(*common.Address)
-
-	return *outstruct, err
-
-}
-
-// DEFAULTVAULTPARAMS is a free data retrieval call binding the contract method 0xc93c6db4.
-//
-// Solidity: function DEFAULT_VAULT_PARAMS() view returns(uint64 version, uint64 delegatorIndex, uint64 slasherIndex, address vaultSlashBurner, address vaultDefaultAdmin, address vaultBeforeSlashHook)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) DEFAULTVAULTPARAMS() (struct {
-	Version              uint64
-	DelegatorIndex       uint64
-	SlasherIndex         uint64
-	VaultSlashBurner     common.Address
-	VaultDefaultAdmin    common.Address
-	VaultBeforeSlashHook common.Address
-}, error) {
-	return _MantaStakingMiddleware.Contract.DEFAULTVAULTPARAMS(&_MantaStakingMiddleware.CallOpts)
-}
-
-// DEFAULTVAULTPARAMS is a free data retrieval call binding the contract method 0xc93c6db4.
-//
-// Solidity: function DEFAULT_VAULT_PARAMS() view returns(uint64 version, uint64 delegatorIndex, uint64 slasherIndex, address vaultSlashBurner, address vaultDefaultAdmin, address vaultBeforeSlashHook)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) DEFAULTVAULTPARAMS() (struct {
-	Version              uint64
-	DelegatorIndex       uint64
-	SlasherIndex         uint64
-	VaultSlashBurner     common.Address
-	VaultDefaultAdmin    common.Address
-	VaultBeforeSlashHook common.Address
-}, error) {
-	return _MantaStakingMiddleware.Contract.DEFAULTVAULTPARAMS(&_MantaStakingMiddleware.CallOpts)
-}
-
-// EPOCHDURATION is a free data retrieval call binding the contract method 0xa70b9f0c.
-//
-// Solidity: function EPOCH_DURATION() view returns(uint48)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) EPOCHDURATION(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _MantaStakingMiddleware.contract.Call(opts, &out, "EPOCH_DURATION")
+	err := _MantaStakingMiddleware.contract.Call(opts, &out, "REWARD_UPDATER_ROLE")
 
 	if err != nil {
-		return *new(*big.Int), err
+		return *new([32]byte), err
 	}
 
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+	out0 := *abi.ConvertType(out[0], new([32]byte)).(*[32]byte)
 
 	return out0, err
 
 }
 
-// EPOCHDURATION is a free data retrieval call binding the contract method 0xa70b9f0c.
+// REWARDUPDATERROLE is a free data retrieval call binding the contract method 0x1a69d9c8.
 //
-// Solidity: function EPOCH_DURATION() view returns(uint48)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) EPOCHDURATION() (*big.Int, error) {
-	return _MantaStakingMiddleware.Contract.EPOCHDURATION(&_MantaStakingMiddleware.CallOpts)
+// Solidity: function REWARD_UPDATER_ROLE() view returns(bytes32)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) REWARDUPDATERROLE() ([32]byte, error) {
+	return _MantaStakingMiddleware.Contract.REWARDUPDATERROLE(&_MantaStakingMiddleware.CallOpts)
 }
 
-// EPOCHDURATION is a free data retrieval call binding the contract method 0xa70b9f0c.
+// REWARDUPDATERROLE is a free data retrieval call binding the contract method 0x1a69d9c8.
 //
-// Solidity: function EPOCH_DURATION() view returns(uint48)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) EPOCHDURATION() (*big.Int, error) {
-	return _MantaStakingMiddleware.Contract.EPOCHDURATION(&_MantaStakingMiddleware.CallOpts)
-}
-
-// OPERATORREGISTRY is a free data retrieval call binding the contract method 0x83ce0322.
-//
-// Solidity: function OPERATOR_REGISTRY() view returns(address)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) OPERATORREGISTRY(opts *bind.CallOpts) (common.Address, error) {
-	var out []interface{}
-	err := _MantaStakingMiddleware.contract.Call(opts, &out, "OPERATOR_REGISTRY")
-
-	if err != nil {
-		return *new(common.Address), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-
-	return out0, err
-
-}
-
-// OPERATORREGISTRY is a free data retrieval call binding the contract method 0x83ce0322.
-//
-// Solidity: function OPERATOR_REGISTRY() view returns(address)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) OPERATORREGISTRY() (common.Address, error) {
-	return _MantaStakingMiddleware.Contract.OPERATORREGISTRY(&_MantaStakingMiddleware.CallOpts)
-}
-
-// OPERATORREGISTRY is a free data retrieval call binding the contract method 0x83ce0322.
-//
-// Solidity: function OPERATOR_REGISTRY() view returns(address)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) OPERATORREGISTRY() (common.Address, error) {
-	return _MantaStakingMiddleware.Contract.OPERATORREGISTRY(&_MantaStakingMiddleware.CallOpts)
-}
-
-// REQUIREDOPERATORSTAKE is a free data retrieval call binding the contract method 0x6d942667.
-//
-// Solidity: function REQUIRED_OPERATOR_STAKE() view returns(uint256)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) REQUIREDOPERATORSTAKE(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _MantaStakingMiddleware.contract.Call(opts, &out, "REQUIRED_OPERATOR_STAKE")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// REQUIREDOPERATORSTAKE is a free data retrieval call binding the contract method 0x6d942667.
-//
-// Solidity: function REQUIRED_OPERATOR_STAKE() view returns(uint256)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) REQUIREDOPERATORSTAKE() (*big.Int, error) {
-	return _MantaStakingMiddleware.Contract.REQUIREDOPERATORSTAKE(&_MantaStakingMiddleware.CallOpts)
-}
-
-// REQUIREDOPERATORSTAKE is a free data retrieval call binding the contract method 0x6d942667.
-//
-// Solidity: function REQUIRED_OPERATOR_STAKE() view returns(uint256)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) REQUIREDOPERATORSTAKE() (*big.Int, error) {
-	return _MantaStakingMiddleware.Contract.REQUIREDOPERATORSTAKE(&_MantaStakingMiddleware.CallOpts)
-}
-
-// STAKETOKEN is a free data retrieval call binding the contract method 0x1c39b672.
-//
-// Solidity: function STAKE_TOKEN() view returns(address)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) STAKETOKEN(opts *bind.CallOpts) (common.Address, error) {
-	var out []interface{}
-	err := _MantaStakingMiddleware.contract.Call(opts, &out, "STAKE_TOKEN")
-
-	if err != nil {
-		return *new(common.Address), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-
-	return out0, err
-
-}
-
-// STAKETOKEN is a free data retrieval call binding the contract method 0x1c39b672.
-//
-// Solidity: function STAKE_TOKEN() view returns(address)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) STAKETOKEN() (common.Address, error) {
-	return _MantaStakingMiddleware.Contract.STAKETOKEN(&_MantaStakingMiddleware.CallOpts)
-}
-
-// STAKETOKEN is a free data retrieval call binding the contract method 0x1c39b672.
-//
-// Solidity: function STAKE_TOKEN() view returns(address)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) STAKETOKEN() (common.Address, error) {
-	return _MantaStakingMiddleware.Contract.STAKETOKEN(&_MantaStakingMiddleware.CallOpts)
-}
-
-// UNREGISTERTOKENUNLOCKWINDOW is a free data retrieval call binding the contract method 0x5d91c2a6.
-//
-// Solidity: function UNREGISTER_TOKEN_UNLOCK_WINDOW() view returns(uint48)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) UNREGISTERTOKENUNLOCKWINDOW(opts *bind.CallOpts) (*big.Int, error) {
-	var out []interface{}
-	err := _MantaStakingMiddleware.contract.Call(opts, &out, "UNREGISTER_TOKEN_UNLOCK_WINDOW")
-
-	if err != nil {
-		return *new(*big.Int), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
-
-	return out0, err
-
-}
-
-// UNREGISTERTOKENUNLOCKWINDOW is a free data retrieval call binding the contract method 0x5d91c2a6.
-//
-// Solidity: function UNREGISTER_TOKEN_UNLOCK_WINDOW() view returns(uint48)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) UNREGISTERTOKENUNLOCKWINDOW() (*big.Int, error) {
-	return _MantaStakingMiddleware.Contract.UNREGISTERTOKENUNLOCKWINDOW(&_MantaStakingMiddleware.CallOpts)
-}
-
-// UNREGISTERTOKENUNLOCKWINDOW is a free data retrieval call binding the contract method 0x5d91c2a6.
-//
-// Solidity: function UNREGISTER_TOKEN_UNLOCK_WINDOW() view returns(uint48)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) UNREGISTERTOKENUNLOCKWINDOW() (*big.Int, error) {
-	return _MantaStakingMiddleware.Contract.UNREGISTERTOKENUNLOCKWINDOW(&_MantaStakingMiddleware.CallOpts)
-}
-
-// VAULTCONFIGURATION is a free data retrieval call binding the contract method 0x81de864a.
-//
-// Solidity: function VAULT_CONFIGURATION() view returns(address)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) VAULTCONFIGURATION(opts *bind.CallOpts) (common.Address, error) {
-	var out []interface{}
-	err := _MantaStakingMiddleware.contract.Call(opts, &out, "VAULT_CONFIGURATION")
-
-	if err != nil {
-		return *new(common.Address), err
-	}
-
-	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-
-	return out0, err
-
-}
-
-// VAULTCONFIGURATION is a free data retrieval call binding the contract method 0x81de864a.
-//
-// Solidity: function VAULT_CONFIGURATION() view returns(address)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) VAULTCONFIGURATION() (common.Address, error) {
-	return _MantaStakingMiddleware.Contract.VAULTCONFIGURATION(&_MantaStakingMiddleware.CallOpts)
-}
-
-// VAULTCONFIGURATION is a free data retrieval call binding the contract method 0x81de864a.
-//
-// Solidity: function VAULT_CONFIGURATION() view returns(address)
-func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) VAULTCONFIGURATION() (common.Address, error) {
-	return _MantaStakingMiddleware.Contract.VAULTCONFIGURATION(&_MantaStakingMiddleware.CallOpts)
+// Solidity: function REWARD_UPDATER_ROLE() view returns(bytes32)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) REWARDUPDATERROLE() ([32]byte, error) {
+	return _MantaStakingMiddleware.Contract.REWARDUPDATERROLE(&_MantaStakingMiddleware.CallOpts)
 }
 
 // GetRoleAdmin is a free data retrieval call binding the contract method 0x248a9ca3.
@@ -556,6 +360,97 @@ func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) HasRole(role
 	return _MantaStakingMiddleware.Contract.HasRole(&_MantaStakingMiddleware.CallOpts, role, account)
 }
 
+// OperatorNameExists is a free data retrieval call binding the contract method 0x1d6a65d7.
+//
+// Solidity: function operatorNameExists(bytes32 ) view returns(bool)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) OperatorNameExists(opts *bind.CallOpts, arg0 [32]byte) (bool, error) {
+	var out []interface{}
+	err := _MantaStakingMiddleware.contract.Call(opts, &out, "operatorNameExists", arg0)
+
+	if err != nil {
+		return *new(bool), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(bool)).(*bool)
+
+	return out0, err
+
+}
+
+// OperatorNameExists is a free data retrieval call binding the contract method 0x1d6a65d7.
+//
+// Solidity: function operatorNameExists(bytes32 ) view returns(bool)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) OperatorNameExists(arg0 [32]byte) (bool, error) {
+	return _MantaStakingMiddleware.Contract.OperatorNameExists(&_MantaStakingMiddleware.CallOpts, arg0)
+}
+
+// OperatorNameExists is a free data retrieval call binding the contract method 0x1d6a65d7.
+//
+// Solidity: function operatorNameExists(bytes32 ) view returns(bool)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) OperatorNameExists(arg0 [32]byte) (bool, error) {
+	return _MantaStakingMiddleware.Contract.OperatorNameExists(&_MantaStakingMiddleware.CallOpts, arg0)
+}
+
+// OperatorSettings is a free data retrieval call binding the contract method 0x72aef6bf.
+//
+// Solidity: function operatorSettings() view returns(uint48 unregisterTokenUnlockWindow, uint256 requiredOperatorStake, uint48 minOperatorCommission, uint48 maxOperatorCommission, uint48 maxValidOperator)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) OperatorSettings(opts *bind.CallOpts) (struct {
+	UnregisterTokenUnlockWindow *big.Int
+	RequiredOperatorStake       *big.Int
+	MinOperatorCommission       *big.Int
+	MaxOperatorCommission       *big.Int
+	MaxValidOperator            *big.Int
+}, error) {
+	var out []interface{}
+	err := _MantaStakingMiddleware.contract.Call(opts, &out, "operatorSettings")
+
+	outstruct := new(struct {
+		UnregisterTokenUnlockWindow *big.Int
+		RequiredOperatorStake       *big.Int
+		MinOperatorCommission       *big.Int
+		MaxOperatorCommission       *big.Int
+		MaxValidOperator            *big.Int
+	})
+	if err != nil {
+		return *outstruct, err
+	}
+
+	outstruct.UnregisterTokenUnlockWindow = *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+	outstruct.RequiredOperatorStake = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
+	outstruct.MinOperatorCommission = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
+	outstruct.MaxOperatorCommission = *abi.ConvertType(out[3], new(*big.Int)).(**big.Int)
+	outstruct.MaxValidOperator = *abi.ConvertType(out[4], new(*big.Int)).(**big.Int)
+
+	return *outstruct, err
+
+}
+
+// OperatorSettings is a free data retrieval call binding the contract method 0x72aef6bf.
+//
+// Solidity: function operatorSettings() view returns(uint48 unregisterTokenUnlockWindow, uint256 requiredOperatorStake, uint48 minOperatorCommission, uint48 maxOperatorCommission, uint48 maxValidOperator)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) OperatorSettings() (struct {
+	UnregisterTokenUnlockWindow *big.Int
+	RequiredOperatorStake       *big.Int
+	MinOperatorCommission       *big.Int
+	MaxOperatorCommission       *big.Int
+	MaxValidOperator            *big.Int
+}, error) {
+	return _MantaStakingMiddleware.Contract.OperatorSettings(&_MantaStakingMiddleware.CallOpts)
+}
+
+// OperatorSettings is a free data retrieval call binding the contract method 0x72aef6bf.
+//
+// Solidity: function operatorSettings() view returns(uint48 unregisterTokenUnlockWindow, uint256 requiredOperatorStake, uint48 minOperatorCommission, uint48 maxOperatorCommission, uint48 maxValidOperator)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) OperatorSettings() (struct {
+	UnregisterTokenUnlockWindow *big.Int
+	RequiredOperatorStake       *big.Int
+	MinOperatorCommission       *big.Int
+	MaxOperatorCommission       *big.Int
+	MaxValidOperator            *big.Int
+}, error) {
+	return _MantaStakingMiddleware.Contract.OperatorSettings(&_MantaStakingMiddleware.CallOpts)
+}
+
 // OperatorTokenUnlockTimestamps is a free data retrieval call binding the contract method 0xf3f2c422.
 //
 // Solidity: function operatorTokenUnlockTimestamps(address ) view returns(uint48)
@@ -589,17 +484,23 @@ func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) OperatorToke
 
 // Operators is a free data retrieval call binding the contract method 0x13e7c9d8.
 //
-// Solidity: function operators(address ) view returns(address vault, bool paused)
+// Solidity: function operators(address ) view returns(address vault, bool paused, string operatorName, address rewardAddress, uint48 commission)
 func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) Operators(opts *bind.CallOpts, arg0 common.Address) (struct {
-	Vault  common.Address
-	Paused bool
+	Vault         common.Address
+	Paused        bool
+	OperatorName  string
+	RewardAddress common.Address
+	Commission    *big.Int
 }, error) {
 	var out []interface{}
 	err := _MantaStakingMiddleware.contract.Call(opts, &out, "operators", arg0)
 
 	outstruct := new(struct {
-		Vault  common.Address
-		Paused bool
+		Vault         common.Address
+		Paused        bool
+		OperatorName  string
+		RewardAddress common.Address
+		Commission    *big.Int
 	})
 	if err != nil {
 		return *outstruct, err
@@ -607,6 +508,9 @@ func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) Operators(opts *bin
 
 	outstruct.Vault = *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
 	outstruct.Paused = *abi.ConvertType(out[1], new(bool)).(*bool)
+	outstruct.OperatorName = *abi.ConvertType(out[2], new(string)).(*string)
+	outstruct.RewardAddress = *abi.ConvertType(out[3], new(common.Address)).(*common.Address)
+	outstruct.Commission = *abi.ConvertType(out[4], new(*big.Int)).(**big.Int)
 
 	return *outstruct, err
 
@@ -614,22 +518,73 @@ func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) Operators(opts *bin
 
 // Operators is a free data retrieval call binding the contract method 0x13e7c9d8.
 //
-// Solidity: function operators(address ) view returns(address vault, bool paused)
+// Solidity: function operators(address ) view returns(address vault, bool paused, string operatorName, address rewardAddress, uint48 commission)
 func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) Operators(arg0 common.Address) (struct {
-	Vault  common.Address
-	Paused bool
+	Vault         common.Address
+	Paused        bool
+	OperatorName  string
+	RewardAddress common.Address
+	Commission    *big.Int
 }, error) {
 	return _MantaStakingMiddleware.Contract.Operators(&_MantaStakingMiddleware.CallOpts, arg0)
 }
 
 // Operators is a free data retrieval call binding the contract method 0x13e7c9d8.
 //
-// Solidity: function operators(address ) view returns(address vault, bool paused)
+// Solidity: function operators(address ) view returns(address vault, bool paused, string operatorName, address rewardAddress, uint48 commission)
 func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) Operators(arg0 common.Address) (struct {
-	Vault  common.Address
-	Paused bool
+	Vault         common.Address
+	Paused        bool
+	OperatorName  string
+	RewardAddress common.Address
+	Commission    *big.Int
 }, error) {
 	return _MantaStakingMiddleware.Contract.Operators(&_MantaStakingMiddleware.CallOpts, arg0)
+}
+
+// RewardSettings is a free data retrieval call binding the contract method 0xc15025c6.
+//
+// Solidity: function rewardSettings() view returns(address operatorRewardDistributor, address stakerRewardDistributor)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) RewardSettings(opts *bind.CallOpts) (struct {
+	OperatorRewardDistributor common.Address
+	StakerRewardDistributor   common.Address
+}, error) {
+	var out []interface{}
+	err := _MantaStakingMiddleware.contract.Call(opts, &out, "rewardSettings")
+
+	outstruct := new(struct {
+		OperatorRewardDistributor common.Address
+		StakerRewardDistributor   common.Address
+	})
+	if err != nil {
+		return *outstruct, err
+	}
+
+	outstruct.OperatorRewardDistributor = *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+	outstruct.StakerRewardDistributor = *abi.ConvertType(out[1], new(common.Address)).(*common.Address)
+
+	return *outstruct, err
+
+}
+
+// RewardSettings is a free data retrieval call binding the contract method 0xc15025c6.
+//
+// Solidity: function rewardSettings() view returns(address operatorRewardDistributor, address stakerRewardDistributor)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) RewardSettings() (struct {
+	OperatorRewardDistributor common.Address
+	StakerRewardDistributor   common.Address
+}, error) {
+	return _MantaStakingMiddleware.Contract.RewardSettings(&_MantaStakingMiddleware.CallOpts)
+}
+
+// RewardSettings is a free data retrieval call binding the contract method 0xc15025c6.
+//
+// Solidity: function rewardSettings() view returns(address operatorRewardDistributor, address stakerRewardDistributor)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) RewardSettings() (struct {
+	OperatorRewardDistributor common.Address
+	StakerRewardDistributor   common.Address
+}, error) {
+	return _MantaStakingMiddleware.Contract.RewardSettings(&_MantaStakingMiddleware.CallOpts)
 }
 
 // SupportsInterface is a free data retrieval call binding the contract method 0x01ffc9a7.
@@ -663,6 +618,66 @@ func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) SupportsInte
 	return _MantaStakingMiddleware.Contract.SupportsInterface(&_MantaStakingMiddleware.CallOpts, interfaceId)
 }
 
+// SymbioticVaultSettings is a free data retrieval call binding the contract method 0x1b72a9ff.
+//
+// Solidity: function symbioticVaultSettings() view returns(address operatorRegistry, address vaultConfiguration, uint48 epochDuration, address stakeToken, (uint64,uint64,uint64,address,address,address) defaultVaultParams)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareCaller) SymbioticVaultSettings(opts *bind.CallOpts) (struct {
+	OperatorRegistry   common.Address
+	VaultConfiguration common.Address
+	EpochDuration      *big.Int
+	StakeToken         common.Address
+	DefaultVaultParams DefaultVaultInitParams
+}, error) {
+	var out []interface{}
+	err := _MantaStakingMiddleware.contract.Call(opts, &out, "symbioticVaultSettings")
+
+	outstruct := new(struct {
+		OperatorRegistry   common.Address
+		VaultConfiguration common.Address
+		EpochDuration      *big.Int
+		StakeToken         common.Address
+		DefaultVaultParams DefaultVaultInitParams
+	})
+	if err != nil {
+		return *outstruct, err
+	}
+
+	outstruct.OperatorRegistry = *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+	outstruct.VaultConfiguration = *abi.ConvertType(out[1], new(common.Address)).(*common.Address)
+	outstruct.EpochDuration = *abi.ConvertType(out[2], new(*big.Int)).(**big.Int)
+	outstruct.StakeToken = *abi.ConvertType(out[3], new(common.Address)).(*common.Address)
+	outstruct.DefaultVaultParams = *abi.ConvertType(out[4], new(DefaultVaultInitParams)).(*DefaultVaultInitParams)
+
+	return *outstruct, err
+
+}
+
+// SymbioticVaultSettings is a free data retrieval call binding the contract method 0x1b72a9ff.
+//
+// Solidity: function symbioticVaultSettings() view returns(address operatorRegistry, address vaultConfiguration, uint48 epochDuration, address stakeToken, (uint64,uint64,uint64,address,address,address) defaultVaultParams)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) SymbioticVaultSettings() (struct {
+	OperatorRegistry   common.Address
+	VaultConfiguration common.Address
+	EpochDuration      *big.Int
+	StakeToken         common.Address
+	DefaultVaultParams DefaultVaultInitParams
+}, error) {
+	return _MantaStakingMiddleware.Contract.SymbioticVaultSettings(&_MantaStakingMiddleware.CallOpts)
+}
+
+// SymbioticVaultSettings is a free data retrieval call binding the contract method 0x1b72a9ff.
+//
+// Solidity: function symbioticVaultSettings() view returns(address operatorRegistry, address vaultConfiguration, uint48 epochDuration, address stakeToken, (uint64,uint64,uint64,address,address,address) defaultVaultParams)
+func (_MantaStakingMiddleware *MantaStakingMiddlewareCallerSession) SymbioticVaultSettings() (struct {
+	OperatorRegistry   common.Address
+	VaultConfiguration common.Address
+	EpochDuration      *big.Int
+	StakeToken         common.Address
+	DefaultVaultParams DefaultVaultInitParams
+}, error) {
+	return _MantaStakingMiddleware.Contract.SymbioticVaultSettings(&_MantaStakingMiddleware.CallOpts)
+}
+
 // ClaimUnlockedToken is a paid mutator transaction binding the contract method 0xa0f98db6.
 //
 // Solidity: function claimUnlockedToken() returns()
@@ -682,6 +697,27 @@ func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) ClaimUnlockedToken
 // Solidity: function claimUnlockedToken() returns()
 func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactorSession) ClaimUnlockedToken() (*types.Transaction, error) {
 	return _MantaStakingMiddleware.Contract.ClaimUnlockedToken(&_MantaStakingMiddleware.TransactOpts)
+}
+
+// DistributeRewards is a paid mutator transaction binding the contract method 0xff4e42d7.
+//
+// Solidity: function distributeRewards(address network, address token, uint256 operatorRewardAmount, uint256 stakerRewardAmount, uint48 captureTimestamp, bytes32 operatorRewardRoot) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactor) DistributeRewards(opts *bind.TransactOpts, network common.Address, token common.Address, operatorRewardAmount *big.Int, stakerRewardAmount *big.Int, captureTimestamp *big.Int, operatorRewardRoot [32]byte) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.contract.Transact(opts, "distributeRewards", network, token, operatorRewardAmount, stakerRewardAmount, captureTimestamp, operatorRewardRoot)
+}
+
+// DistributeRewards is a paid mutator transaction binding the contract method 0xff4e42d7.
+//
+// Solidity: function distributeRewards(address network, address token, uint256 operatorRewardAmount, uint256 stakerRewardAmount, uint48 captureTimestamp, bytes32 operatorRewardRoot) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) DistributeRewards(network common.Address, token common.Address, operatorRewardAmount *big.Int, stakerRewardAmount *big.Int, captureTimestamp *big.Int, operatorRewardRoot [32]byte) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.Contract.DistributeRewards(&_MantaStakingMiddleware.TransactOpts, network, token, operatorRewardAmount, stakerRewardAmount, captureTimestamp, operatorRewardRoot)
+}
+
+// DistributeRewards is a paid mutator transaction binding the contract method 0xff4e42d7.
+//
+// Solidity: function distributeRewards(address network, address token, uint256 operatorRewardAmount, uint256 stakerRewardAmount, uint48 captureTimestamp, bytes32 operatorRewardRoot) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactorSession) DistributeRewards(network common.Address, token common.Address, operatorRewardAmount *big.Int, stakerRewardAmount *big.Int, captureTimestamp *big.Int, operatorRewardRoot [32]byte) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.Contract.DistributeRewards(&_MantaStakingMiddleware.TransactOpts, network, token, operatorRewardAmount, stakerRewardAmount, captureTimestamp, operatorRewardRoot)
 }
 
 // GrantRole is a paid mutator transaction binding the contract method 0x2f2ff15d.
@@ -705,25 +741,25 @@ func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactorSession) GrantRol
 	return _MantaStakingMiddleware.Contract.GrantRole(&_MantaStakingMiddleware.TransactOpts, role, account)
 }
 
-// Initialize is a paid mutator transaction binding the contract method 0x37148a24.
+// Initialize is a paid mutator transaction binding the contract method 0x989bfec5.
 //
-// Solidity: function initialize(address operatorRegistry_, address vaultConfiguration_, uint48 epochDuration_, uint256 requiredOperatorStake_, address stakeToken_, uint48 unregisterTokenUnlockWindow_, (uint64,uint64,uint64,address,address,address) defaultVaultParams_) returns()
-func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactor) Initialize(opts *bind.TransactOpts, operatorRegistry_ common.Address, vaultConfiguration_ common.Address, epochDuration_ *big.Int, requiredOperatorStake_ *big.Int, stakeToken_ common.Address, unregisterTokenUnlockWindow_ *big.Int, defaultVaultParams_ MantaStakingMiddlewareDefaultVaultInitParams) (*types.Transaction, error) {
-	return _MantaStakingMiddleware.contract.Transact(opts, "initialize", operatorRegistry_, vaultConfiguration_, epochDuration_, requiredOperatorStake_, stakeToken_, unregisterTokenUnlockWindow_, defaultVaultParams_)
+// Solidity: function initialize((address,address,uint48,address,(uint64,uint64,uint64,address,address,address)) symbioticVaultSettings_, (uint48,uint256,uint48,uint48,uint48) operatorSettings_, (address,address) rewardSettings_) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactor) Initialize(opts *bind.TransactOpts, symbioticVaultSettings_ SymbioticVaultSettings, operatorSettings_ OperatorSettings, rewardSettings_ RewardSettings) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.contract.Transact(opts, "initialize", symbioticVaultSettings_, operatorSettings_, rewardSettings_)
 }
 
-// Initialize is a paid mutator transaction binding the contract method 0x37148a24.
+// Initialize is a paid mutator transaction binding the contract method 0x989bfec5.
 //
-// Solidity: function initialize(address operatorRegistry_, address vaultConfiguration_, uint48 epochDuration_, uint256 requiredOperatorStake_, address stakeToken_, uint48 unregisterTokenUnlockWindow_, (uint64,uint64,uint64,address,address,address) defaultVaultParams_) returns()
-func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) Initialize(operatorRegistry_ common.Address, vaultConfiguration_ common.Address, epochDuration_ *big.Int, requiredOperatorStake_ *big.Int, stakeToken_ common.Address, unregisterTokenUnlockWindow_ *big.Int, defaultVaultParams_ MantaStakingMiddlewareDefaultVaultInitParams) (*types.Transaction, error) {
-	return _MantaStakingMiddleware.Contract.Initialize(&_MantaStakingMiddleware.TransactOpts, operatorRegistry_, vaultConfiguration_, epochDuration_, requiredOperatorStake_, stakeToken_, unregisterTokenUnlockWindow_, defaultVaultParams_)
+// Solidity: function initialize((address,address,uint48,address,(uint64,uint64,uint64,address,address,address)) symbioticVaultSettings_, (uint48,uint256,uint48,uint48,uint48) operatorSettings_, (address,address) rewardSettings_) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) Initialize(symbioticVaultSettings_ SymbioticVaultSettings, operatorSettings_ OperatorSettings, rewardSettings_ RewardSettings) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.Contract.Initialize(&_MantaStakingMiddleware.TransactOpts, symbioticVaultSettings_, operatorSettings_, rewardSettings_)
 }
 
-// Initialize is a paid mutator transaction binding the contract method 0x37148a24.
+// Initialize is a paid mutator transaction binding the contract method 0x989bfec5.
 //
-// Solidity: function initialize(address operatorRegistry_, address vaultConfiguration_, uint48 epochDuration_, uint256 requiredOperatorStake_, address stakeToken_, uint48 unregisterTokenUnlockWindow_, (uint64,uint64,uint64,address,address,address) defaultVaultParams_) returns()
-func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactorSession) Initialize(operatorRegistry_ common.Address, vaultConfiguration_ common.Address, epochDuration_ *big.Int, requiredOperatorStake_ *big.Int, stakeToken_ common.Address, unregisterTokenUnlockWindow_ *big.Int, defaultVaultParams_ MantaStakingMiddlewareDefaultVaultInitParams) (*types.Transaction, error) {
-	return _MantaStakingMiddleware.Contract.Initialize(&_MantaStakingMiddleware.TransactOpts, operatorRegistry_, vaultConfiguration_, epochDuration_, requiredOperatorStake_, stakeToken_, unregisterTokenUnlockWindow_, defaultVaultParams_)
+// Solidity: function initialize((address,address,uint48,address,(uint64,uint64,uint64,address,address,address)) symbioticVaultSettings_, (uint48,uint256,uint48,uint48,uint48) operatorSettings_, (address,address) rewardSettings_) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactorSession) Initialize(symbioticVaultSettings_ SymbioticVaultSettings, operatorSettings_ OperatorSettings, rewardSettings_ RewardSettings) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.Contract.Initialize(&_MantaStakingMiddleware.TransactOpts, symbioticVaultSettings_, operatorSettings_, rewardSettings_)
 }
 
 // PauseOperator is a paid mutator transaction binding the contract method 0x72f9adab.
@@ -747,25 +783,25 @@ func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactorSession) PauseOpe
 	return _MantaStakingMiddleware.Contract.PauseOperator(&_MantaStakingMiddleware.TransactOpts, operator)
 }
 
-// RegisterOperator is a paid mutator transaction binding the contract method 0x2acde098.
+// RegisterOperator is a paid mutator transaction binding the contract method 0x60ba757d.
 //
-// Solidity: function registerOperator() returns()
-func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactor) RegisterOperator(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _MantaStakingMiddleware.contract.Transact(opts, "registerOperator")
+// Solidity: function registerOperator(string operatorName, address rewardAddress, uint48 commission) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactor) RegisterOperator(opts *bind.TransactOpts, operatorName string, rewardAddress common.Address, commission *big.Int) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.contract.Transact(opts, "registerOperator", operatorName, rewardAddress, commission)
 }
 
-// RegisterOperator is a paid mutator transaction binding the contract method 0x2acde098.
+// RegisterOperator is a paid mutator transaction binding the contract method 0x60ba757d.
 //
-// Solidity: function registerOperator() returns()
-func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) RegisterOperator() (*types.Transaction, error) {
-	return _MantaStakingMiddleware.Contract.RegisterOperator(&_MantaStakingMiddleware.TransactOpts)
+// Solidity: function registerOperator(string operatorName, address rewardAddress, uint48 commission) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) RegisterOperator(operatorName string, rewardAddress common.Address, commission *big.Int) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.Contract.RegisterOperator(&_MantaStakingMiddleware.TransactOpts, operatorName, rewardAddress, commission)
 }
 
-// RegisterOperator is a paid mutator transaction binding the contract method 0x2acde098.
+// RegisterOperator is a paid mutator transaction binding the contract method 0x60ba757d.
 //
-// Solidity: function registerOperator() returns()
-func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactorSession) RegisterOperator() (*types.Transaction, error) {
-	return _MantaStakingMiddleware.Contract.RegisterOperator(&_MantaStakingMiddleware.TransactOpts)
+// Solidity: function registerOperator(string operatorName, address rewardAddress, uint48 commission) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactorSession) RegisterOperator(operatorName string, rewardAddress common.Address, commission *big.Int) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.Contract.RegisterOperator(&_MantaStakingMiddleware.TransactOpts, operatorName, rewardAddress, commission)
 }
 
 // RenounceRole is a paid mutator transaction binding the contract method 0x36568abe.
@@ -871,6 +907,69 @@ func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) UnregisterOperator
 // Solidity: function unregisterOperator() returns()
 func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactorSession) UnregisterOperator() (*types.Transaction, error) {
 	return _MantaStakingMiddleware.Contract.UnregisterOperator(&_MantaStakingMiddleware.TransactOpts)
+}
+
+// UpdateOperatorSettings is a paid mutator transaction binding the contract method 0x12f09ad7.
+//
+// Solidity: function updateOperatorSettings((uint48,uint256,uint48,uint48,uint48) operatorSettings_) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactor) UpdateOperatorSettings(opts *bind.TransactOpts, operatorSettings_ OperatorSettings) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.contract.Transact(opts, "updateOperatorSettings", operatorSettings_)
+}
+
+// UpdateOperatorSettings is a paid mutator transaction binding the contract method 0x12f09ad7.
+//
+// Solidity: function updateOperatorSettings((uint48,uint256,uint48,uint48,uint48) operatorSettings_) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) UpdateOperatorSettings(operatorSettings_ OperatorSettings) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.Contract.UpdateOperatorSettings(&_MantaStakingMiddleware.TransactOpts, operatorSettings_)
+}
+
+// UpdateOperatorSettings is a paid mutator transaction binding the contract method 0x12f09ad7.
+//
+// Solidity: function updateOperatorSettings((uint48,uint256,uint48,uint48,uint48) operatorSettings_) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactorSession) UpdateOperatorSettings(operatorSettings_ OperatorSettings) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.Contract.UpdateOperatorSettings(&_MantaStakingMiddleware.TransactOpts, operatorSettings_)
+}
+
+// UpdateRewardSettings is a paid mutator transaction binding the contract method 0x0c761c97.
+//
+// Solidity: function updateRewardSettings((address,address) rewardSettings_) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactor) UpdateRewardSettings(opts *bind.TransactOpts, rewardSettings_ RewardSettings) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.contract.Transact(opts, "updateRewardSettings", rewardSettings_)
+}
+
+// UpdateRewardSettings is a paid mutator transaction binding the contract method 0x0c761c97.
+//
+// Solidity: function updateRewardSettings((address,address) rewardSettings_) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) UpdateRewardSettings(rewardSettings_ RewardSettings) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.Contract.UpdateRewardSettings(&_MantaStakingMiddleware.TransactOpts, rewardSettings_)
+}
+
+// UpdateRewardSettings is a paid mutator transaction binding the contract method 0x0c761c97.
+//
+// Solidity: function updateRewardSettings((address,address) rewardSettings_) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactorSession) UpdateRewardSettings(rewardSettings_ RewardSettings) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.Contract.UpdateRewardSettings(&_MantaStakingMiddleware.TransactOpts, rewardSettings_)
+}
+
+// UpdateSymbioticVaultSettings is a paid mutator transaction binding the contract method 0x7a6efb69.
+//
+// Solidity: function updateSymbioticVaultSettings((address,address,uint48,address,(uint64,uint64,uint64,address,address,address)) symbioticVaultSettings_) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactor) UpdateSymbioticVaultSettings(opts *bind.TransactOpts, symbioticVaultSettings_ SymbioticVaultSettings) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.contract.Transact(opts, "updateSymbioticVaultSettings", symbioticVaultSettings_)
+}
+
+// UpdateSymbioticVaultSettings is a paid mutator transaction binding the contract method 0x7a6efb69.
+//
+// Solidity: function updateSymbioticVaultSettings((address,address,uint48,address,(uint64,uint64,uint64,address,address,address)) symbioticVaultSettings_) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareSession) UpdateSymbioticVaultSettings(symbioticVaultSettings_ SymbioticVaultSettings) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.Contract.UpdateSymbioticVaultSettings(&_MantaStakingMiddleware.TransactOpts, symbioticVaultSettings_)
+}
+
+// UpdateSymbioticVaultSettings is a paid mutator transaction binding the contract method 0x7a6efb69.
+//
+// Solidity: function updateSymbioticVaultSettings((address,address,uint48,address,(uint64,uint64,uint64,address,address,address)) symbioticVaultSettings_) returns()
+func (_MantaStakingMiddleware *MantaStakingMiddlewareTransactorSession) UpdateSymbioticVaultSettings(symbioticVaultSettings_ SymbioticVaultSettings) (*types.Transaction, error) {
+	return _MantaStakingMiddleware.Contract.UpdateSymbioticVaultSettings(&_MantaStakingMiddleware.TransactOpts, symbioticVaultSettings_)
 }
 
 // MantaStakingMiddlewareInitializedIterator is returned from FilterInitialized and is used to iterate over the raw logs and unpacked data for Initialized events raised by the MantaStakingMiddleware contract.
@@ -1210,16 +1309,17 @@ func (it *MantaStakingMiddlewareOperatorRegisteredIterator) Close() error {
 
 // MantaStakingMiddlewareOperatorRegistered represents a OperatorRegistered event raised by the MantaStakingMiddleware contract.
 type MantaStakingMiddlewareOperatorRegistered struct {
-	Operator  common.Address
-	Vault     common.Address
-	Delegator common.Address
-	Slasher   common.Address
-	Raw       types.Log // Blockchain specific contextual infos
+	Operator      common.Address
+	OperatorName  string
+	RewardAddress common.Address
+	Commission    *big.Int
+	Vault         common.Address
+	Raw           types.Log // Blockchain specific contextual infos
 }
 
-// FilterOperatorRegistered is a free log retrieval operation binding the contract event 0x46646bab0dd157a3684acf6b4684ec8f475dfa314fe44fb2db2c67ab3f865ee1.
+// FilterOperatorRegistered is a free log retrieval operation binding the contract event 0x4f8ede3304cdb9db4ee7e3e1c7e1a12d293f88c81465a874846a844ff1de65b8.
 //
-// Solidity: event OperatorRegistered(address operator, address vault, address delegator, address slasher)
+// Solidity: event OperatorRegistered(address operator, string operatorName, address rewardAddress, uint48 commission, address vault)
 func (_MantaStakingMiddleware *MantaStakingMiddlewareFilterer) FilterOperatorRegistered(opts *bind.FilterOpts) (*MantaStakingMiddlewareOperatorRegisteredIterator, error) {
 
 	logs, sub, err := _MantaStakingMiddleware.contract.FilterLogs(opts, "OperatorRegistered")
@@ -1229,9 +1329,9 @@ func (_MantaStakingMiddleware *MantaStakingMiddlewareFilterer) FilterOperatorReg
 	return &MantaStakingMiddlewareOperatorRegisteredIterator{contract: _MantaStakingMiddleware.contract, event: "OperatorRegistered", logs: logs, sub: sub}, nil
 }
 
-// WatchOperatorRegistered is a free log subscription operation binding the contract event 0x46646bab0dd157a3684acf6b4684ec8f475dfa314fe44fb2db2c67ab3f865ee1.
+// WatchOperatorRegistered is a free log subscription operation binding the contract event 0x4f8ede3304cdb9db4ee7e3e1c7e1a12d293f88c81465a874846a844ff1de65b8.
 //
-// Solidity: event OperatorRegistered(address operator, address vault, address delegator, address slasher)
+// Solidity: event OperatorRegistered(address operator, string operatorName, address rewardAddress, uint48 commission, address vault)
 func (_MantaStakingMiddleware *MantaStakingMiddlewareFilterer) WatchOperatorRegistered(opts *bind.WatchOpts, sink chan<- *MantaStakingMiddlewareOperatorRegistered) (event.Subscription, error) {
 
 	logs, sub, err := _MantaStakingMiddleware.contract.WatchLogs(opts, "OperatorRegistered")
@@ -1266,9 +1366,9 @@ func (_MantaStakingMiddleware *MantaStakingMiddlewareFilterer) WatchOperatorRegi
 	}), nil
 }
 
-// ParseOperatorRegistered is a log parse operation binding the contract event 0x46646bab0dd157a3684acf6b4684ec8f475dfa314fe44fb2db2c67ab3f865ee1.
+// ParseOperatorRegistered is a log parse operation binding the contract event 0x4f8ede3304cdb9db4ee7e3e1c7e1a12d293f88c81465a874846a844ff1de65b8.
 //
-// Solidity: event OperatorRegistered(address operator, address vault, address delegator, address slasher)
+// Solidity: event OperatorRegistered(address operator, string operatorName, address rewardAddress, uint48 commission, address vault)
 func (_MantaStakingMiddleware *MantaStakingMiddlewareFilterer) ParseOperatorRegistered(log types.Log) (*MantaStakingMiddlewareOperatorRegistered, error) {
 	event := new(MantaStakingMiddlewareOperatorRegistered)
 	if err := _MantaStakingMiddleware.contract.UnpackLog(event, "OperatorRegistered", log); err != nil {

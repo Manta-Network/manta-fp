@@ -3,6 +3,8 @@ package store
 import (
 	"fmt"
 
+	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
+
 	sdkmath "cosmossdk.io/math"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
@@ -11,8 +13,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/lightningnetwork/lnd/kvdb"
 	pm "google.golang.org/protobuf/proto"
-
-	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
 )
 
 var (

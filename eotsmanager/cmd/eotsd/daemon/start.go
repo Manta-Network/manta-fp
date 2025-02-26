@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"net"
 
-	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/lightningnetwork/lnd/signal"
-	"github.com/spf13/cobra"
-
 	"github.com/Manta-Network/manta-fp/eotsmanager"
 	"github.com/Manta-Network/manta-fp/eotsmanager/config"
 	eotsservice "github.com/Manta-Network/manta-fp/eotsmanager/service"
 	"github.com/Manta-Network/manta-fp/log"
+
+	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/lightningnetwork/lnd/signal"
+	"github.com/spf13/cobra"
 )
 
 func NewStartCmd() *cobra.Command {

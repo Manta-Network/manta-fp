@@ -3,22 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
-
 	"strings"
 	"sync"
-
-	sdkmath "cosmossdk.io/math"
-	"github.com/avast/retry-go/v4"
-	"go.uber.org/zap"
-
-	bbntypes "github.com/babylonlabs-io/babylon/types"
-	bstypes "github.com/babylonlabs-io/babylon/x/btcstaking/types"
-	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/cometbft/cometbft/crypto/tmhash"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/lightningnetwork/lnd/kvdb"
 
 	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
 	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
@@ -31,6 +17,18 @@ import (
 	"github.com/Manta-Network/manta-fp/l2chain/opstack"
 	"github.com/Manta-Network/manta-fp/metrics"
 	"github.com/Manta-Network/manta-fp/types"
+
+	sdkmath "cosmossdk.io/math"
+	"github.com/avast/retry-go/v4"
+	bbntypes "github.com/babylonlabs-io/babylon/types"
+	bstypes "github.com/babylonlabs-io/babylon/x/btcstaking/types"
+	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/cometbft/cometbft/crypto/tmhash"
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/lightningnetwork/lnd/kvdb"
+	"go.uber.org/zap"
 )
 
 type FinalityProviderApp struct {

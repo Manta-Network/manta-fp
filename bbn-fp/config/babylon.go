@@ -4,6 +4,7 @@ import (
 	"time"
 
 	cwcfg "github.com/Manta-Network/manta-fp/cosmwasmclient/config"
+
 	bbncfg "github.com/babylonlabs-io/babylon/client/config"
 )
 

@@ -8,9 +8,9 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	types2 "github.com/ethereum/go-ethereum/core/types"
 
-	"github.com/ethereum-optimism/optimism/op-proposer/bindings"
-
 	"github.com/Manta-Network/manta-fp/types"
+
+	"github.com/ethereum-optimism/optimism/op-proposer/bindings"
 )
 
 type EventProvider struct {

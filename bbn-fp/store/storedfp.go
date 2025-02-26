@@ -3,13 +3,13 @@ package store
 import (
 	"fmt"
 
+	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
+
 	sdkmath "cosmossdk.io/math"
 	bbn "github.com/babylonlabs-io/babylon/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
 )
 
 type StoredFinalityProvider struct {

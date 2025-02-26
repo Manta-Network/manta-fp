@@ -7,6 +7,10 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/Manta-Network/manta-fp/codec"
+	"github.com/Manta-Network/manta-fp/eotsmanager/randgenerator"
+	"github.com/Manta-Network/manta-fp/eotsmanager/store"
+	eotstypes "github.com/Manta-Network/manta-fp/eotsmanager/types"
 	"github.com/Manta-Network/manta-fp/metrics"
 
 	"github.com/babylonlabs-io/babylon/crypto/eots"
@@ -18,11 +22,6 @@ import (
 	"github.com/cosmos/go-bip39"
 	"github.com/lightningnetwork/lnd/kvdb"
 	"go.uber.org/zap"
-
-	"github.com/Manta-Network/manta-fp/codec"
-	"github.com/Manta-Network/manta-fp/eotsmanager/randgenerator"
-	"github.com/Manta-Network/manta-fp/eotsmanager/store"
-	eotstypes "github.com/Manta-Network/manta-fp/eotsmanager/types"
 )
 
 const (

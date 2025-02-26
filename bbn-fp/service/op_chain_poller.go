@@ -35,12 +35,15 @@ type OpChainPoller struct {
 	blockTraversal *node.BlockTraversal
 	eventProvider  *opstack.EventProvider
 	blockInfoChan  chan *types.BlockInfo
-
-	metrics *metrics.FpMetrics
-	quit    chan struct{}
+	contracts      []common.Address
+	metrics        *metrics.FpMetrics
+	quit           chan struct{}
 }
 
 func NewOpChainPoller(logger *zap.Logger, opClient node.EthClient, startHeight uint64, cfg *cfg.OpEventConfig, sRStore *store.OpStateRootStore, eventProvider *opstack.EventProvider, metrics *metrics.FpMetrics) (*OpChainPoller, error) {
+	var contracts []common.Address
+	contracts = append(contracts, common.HexToAddress(cfg.L2OutputOracleAddr))
+
 	dbLatestBlock, err := sRStore.GetLatestBlock()
 	if err != nil {
 		return nil, err
@@ -73,6 +76,7 @@ func NewOpChainPoller(logger *zap.Logger, opClient node.EthClient, startHeight u
 		eventProvider:  eventProvider,
 		blockInfoChan:  make(chan *types.BlockInfo, cfg.BufferSize),
 		metrics:        metrics,
+		contracts:      contracts,
 		quit:           make(chan struct{}),
 	}, nil
 }
@@ -87,7 +91,7 @@ func (ocp *OpChainPoller) Start(startHeight uint64) error {
 	ocp.wg.Add(1)
 	go ocp.opPollChain()
 
-	ocp.metrics.RecordPollerStartingHeight(startHeight) // todo: change to op stack
+	ocp.metrics.RecordPollerStartingHeight(startHeight)
 	ocp.logger.Info("the chain poller is successfully started")
 
 	return nil
@@ -139,7 +143,7 @@ func (ocp *OpChainPoller) opPollChain() {
 					return
 				}
 			}
-			err := ocp.processBatch(ocp.headers, ocp.cfg)
+			err := ocp.processBatch(ocp.headers)
 			if err == nil {
 				ocp.headers = nil
 			}
@@ -149,7 +153,7 @@ func (ocp *OpChainPoller) opPollChain() {
 	}
 }
 
-func (ocp *OpChainPoller) processBatch(headers []ctypes.Header, chainCfg *cfg.OpEventConfig) error {
+func (ocp *OpChainPoller) processBatch(headers []ctypes.Header) error {
 	if len(headers) == 0 {
 		return nil
 	}
@@ -161,7 +165,7 @@ func (ocp *OpChainPoller) processBatch(headers []ctypes.Header, chainCfg *cfg.Op
 		headerMap[header.Hash()] = &header
 	}
 
-	filterQuery := ethereum.FilterQuery{FromBlock: firstHeader.Number, ToBlock: lastHeader.Number, Addresses: ocp.cfg.Contracts}
+	filterQuery := ethereum.FilterQuery{FromBlock: firstHeader.Number, ToBlock: lastHeader.Number, Addresses: ocp.contracts}
 	logs, err := ocp.opClient.FilterLogs(filterQuery)
 	if err != nil {
 		ocp.logger.Error("failed to extract logs", zap.String("err", err.Error()))
@@ -193,24 +197,28 @@ func (ocp *OpChainPoller) processBatch(headers []ctypes.Header, chainCfg *cfg.Op
 	}
 
 	// contracts parse
-	for i := range logs.Logs {
-		stateRootEvent, err := ocp.eventProvider.ProcessStateRootEvent(logs.Logs[i])
-		if err != nil {
-			return err
-		}
-		ocp.logger.Info("event list", zap.String("stateroot", hex.EncodeToString(stateRootEvent.StateRoot[:])))
+	for i, log := range logs.Logs {
+		if log.Topics[0].String() == ocp.eventProvider.L2ooABI.Events["OutputProposed"].ID.String() {
+			stateRootEvent, err := ocp.eventProvider.ProcessStateRootEvent(logs.Logs[i])
+			if err != nil {
+				return err
+			}
+			ocp.logger.Info("event list", zap.String("stateroot", hex.EncodeToString(stateRootEvent.StateRoot[:])))
 
-		err = ocp.sRStore.SaveStateRoot(big.NewInt(int64(stateRootEvent.L1BlockNumber)), stateRootEvent.StateRoot,
-			stateRootEvent.L2BlockNumber, stateRootEvent.L1BlockHash, stateRootEvent.L2OutputIndex, stateRootEvent.DisputeGameType)
-		if err != nil {
-			ocp.logger.Error("failed to store state root", zap.String("err", err.Error()))
-			return err
-		}
-		ocp.blockInfoChan <- &types.BlockInfo{
-			Height:    logs.Logs[i].BlockNumber,
-			Hash:      logs.Logs[i].BlockHash.Bytes(),
-			Finalized: false,
-			StateRoot: *stateRootEvent,
+			err = ocp.sRStore.SaveStateRoot(big.NewInt(int64(stateRootEvent.L1BlockNumber)), stateRootEvent.StateRoot,
+				stateRootEvent.L2BlockNumber, stateRootEvent.L1BlockHash, stateRootEvent.L2OutputIndex, stateRootEvent.DisputeGameType)
+			if err != nil {
+				ocp.logger.Error("failed to store state root", zap.String("err", err.Error()))
+				return err
+			}
+			ocp.blockInfoChan <- &types.BlockInfo{
+				Height:    logs.Logs[i].BlockNumber,
+				Hash:      logs.Logs[i].BlockHash.Bytes(),
+				Finalized: false,
+				StateRoot: *stateRootEvent,
+			}
+		} else {
+			return nil
 		}
 	}
 	return nil

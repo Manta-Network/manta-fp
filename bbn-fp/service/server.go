@@ -7,13 +7,13 @@ import (
 	"sync"
 	"sync/atomic"
 
+	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
+	"github.com/Manta-Network/manta-fp/metrics"
+
 	"github.com/lightningnetwork/lnd/kvdb"
 	"github.com/lightningnetwork/lnd/signal"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-
-	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
-	"github.com/Manta-Network/manta-fp/metrics"
 )
 
 // Server is the main daemon construct for the Finality Provider server. It handles

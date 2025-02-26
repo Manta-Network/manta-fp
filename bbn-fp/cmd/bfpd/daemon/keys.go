@@ -1,10 +1,10 @@
 package daemon
 
 import (
+	"github.com/Manta-Network/manta-fp/util"
+
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/spf13/cobra"
-
-	"github.com/Manta-Network/manta-fp/util"
 )
 
 // CommandKeys returns the keys group command and updates the add command to do a

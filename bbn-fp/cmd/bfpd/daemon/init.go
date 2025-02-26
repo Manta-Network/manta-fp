@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/jessevdk/go-flags"
-	"github.com/spf13/cobra"
-
 	fpcmd "github.com/Manta-Network/manta-fp/bbn-fp/cmd"
 	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
 	"github.com/Manta-Network/manta-fp/util"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/jessevdk/go-flags"
+	"github.com/spf13/cobra"
 )
 
 // CommandInit returns the init command of bfpd daemon that starts the config dir.

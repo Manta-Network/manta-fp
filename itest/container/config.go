@@ -3,9 +3,9 @@ package container
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/Manta-Network/manta-fp/testutil"
+
+	"github.com/stretchr/testify/require"
 )
 
 // ImageConfig contains all images and their respective tags

@@ -3,6 +3,8 @@ package cmd
 import (
 	"os"
 
+	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
+
 	"github.com/babylonlabs-io/babylon/app/params"
 	bstypes "github.com/babylonlabs-io/babylon/x/btcstaking/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -10,8 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
-
-	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
 )
 
 // PersistClientCtx persist some vars from the cmd or config to the client context.

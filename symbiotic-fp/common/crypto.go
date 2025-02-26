@@ -9,11 +9,6 @@ import (
 	"math/big"
 	"strings"
 
-	kms "cloud.google.com/go/kms/apiv1"
-	hdkeychain "github.com/decred/dcrd/hdkeychain/v3"
-	"github.com/tyler-smith/go-bip39"
-	"google.golang.org/api/option"
-
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -22,6 +17,11 @@ import (
 	"github.com/ethereum/go-ethereum/log"
 
 	hsm "github.com/Manta-Network/manta-fp/symbiotic-fp/hsm"
+
+	kms "cloud.google.com/go/kms/apiv1"
+	hdkeychain "github.com/decred/dcrd/hdkeychain/v3"
+	"github.com/tyler-smith/go-bip39"
+	"google.golang.org/api/option"
 )
 
 var (

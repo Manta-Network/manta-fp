@@ -4,12 +4,12 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 
 	txmgr "github.com/Manta-Network/manta-fp/symbiotic-fp/txmgr"
+
+	"github.com/stretchr/testify/require"
 )
 
 const testSafeAbortNonceTooLowCount = 3

@@ -3,14 +3,9 @@ package daemon
 import (
 	"context"
 	"fmt"
-
 	"math"
 	"path/filepath"
 	"strconv"
-
-	bbntypes "github.com/babylonlabs-io/babylon/types"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/spf13/cobra"
 
 	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
 	"github.com/Manta-Network/manta-fp/bbn-fp/service"
@@ -22,6 +17,10 @@ import (
 	"github.com/Manta-Network/manta-fp/log"
 	"github.com/Manta-Network/manta-fp/metrics"
 	"github.com/Manta-Network/manta-fp/util"
+
+	bbntypes "github.com/babylonlabs-io/babylon/types"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/spf13/cobra"
 )
 
 // CommandCommitPubRand returns the commit-pubrand command

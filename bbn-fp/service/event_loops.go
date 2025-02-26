@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
+
 	sdkmath "cosmossdk.io/math"
 	bbntypes "github.com/babylonlabs-io/babylon/types"
 	btcstakingtypes "github.com/babylonlabs-io/babylon/x/btcstaking/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"go.uber.org/zap"
-
-	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
 )
 
 type CreateFinalityProviderRequest struct {

@@ -6,12 +6,12 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/Manta-Network/manta-fp/metrics"
+	"github.com/Manta-Network/manta-fp/util"
+
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/jessevdk/go-flags"
-
-	"github.com/Manta-Network/manta-fp/metrics"
-	"github.com/Manta-Network/manta-fp/util"
 )
 
 const (

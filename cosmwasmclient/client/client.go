@@ -5,14 +5,13 @@ import (
 	"sync"
 	"time"
 
-	"go.uber.org/zap"
+	"github.com/Manta-Network/manta-fp/cosmwasmclient/config"
+	"github.com/Manta-Network/manta-fp/cosmwasmclient/query"
 
 	wasmdparams "github.com/CosmWasm/wasmd/app/params"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	"github.com/cosmos/relayer/v2/relayer/chains/cosmos"
-
-	"github.com/Manta-Network/manta-fp/cosmwasmclient/config"
-	"github.com/Manta-Network/manta-fp/cosmwasmclient/query"
+	"go.uber.org/zap"
 )
 
 type Client struct {

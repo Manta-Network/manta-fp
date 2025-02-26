@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	pm "google.golang.org/protobuf/proto"
-
 	"github.com/Manta-Network/manta-fp/eotsmanager/proto"
 
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/btcsuite/btcwallet/walletdb"
 	"github.com/lightningnetwork/lnd/kvdb"
+	pm "google.golang.org/protobuf/proto"
 )
 
 var (

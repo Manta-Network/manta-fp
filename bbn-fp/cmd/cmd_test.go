@@ -6,16 +6,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/require"
-
 	fpcmd "github.com/Manta-Network/manta-fp/bbn-fp/cmd"
 	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
 	"github.com/Manta-Network/manta-fp/util"
+
 	"github.com/babylonlabs-io/babylon/testutil/datagen"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	goflags "github.com/jessevdk/go-flags"
+	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPersistClientCtx(t *testing.T) {

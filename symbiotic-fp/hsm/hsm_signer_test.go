@@ -3,15 +3,15 @@ package hsm
 import (
 	"context"
 	"fmt"
-
 	"log"
 	"math/big"
 	"testing"
 
-	kms "cloud.google.com/go/kms/apiv1"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+
+	kms "cloud.google.com/go/kms/apiv1"
 	"google.golang.org/api/option"
 )
 

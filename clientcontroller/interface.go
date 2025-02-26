@@ -3,15 +3,15 @@ package clientcontroller
 import (
 	"fmt"
 
+	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
+	"github.com/Manta-Network/manta-fp/types"
+
 	"cosmossdk.io/math"
 	btcstakingtypes "github.com/babylonlabs-io/babylon/x/btcstaking/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/btcsuite/btcd/chaincfg"
 	"go.uber.org/zap"
-
-	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
-	"github.com/Manta-Network/manta-fp/types"
 )
 
 const (

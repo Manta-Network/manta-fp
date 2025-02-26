@@ -3,13 +3,13 @@ package e2etest
 import (
 	"testing"
 
-	"github.com/lightningnetwork/lnd/signal"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-
 	"github.com/Manta-Network/manta-fp/eotsmanager"
 	"github.com/Manta-Network/manta-fp/eotsmanager/config"
 	"github.com/Manta-Network/manta-fp/eotsmanager/service"
+
+	"github.com/lightningnetwork/lnd/signal"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 type EOTSServerHandler struct {

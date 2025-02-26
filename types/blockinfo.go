@@ -28,3 +28,17 @@ type StateRoot struct {
 	L1BlockNumber   uint64      `json:"l1_block_number"`
 	DisputeGameType uint64      `json:"dispute_game_type"`
 }
+
+type SignRequest struct {
+	StateRoot   [32]byte `json:"state_root"`
+	Signature   []byte   `json:"signature"`
+	SignAddress string   `json:"sign_address"`
+}
+
+type OperatorPaused struct {
+	Operator common.Address `json:"operator"`
+}
+
+type OperatorUnpaused struct {
+	Operator common.Address `json:"operator"`
+}

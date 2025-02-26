@@ -5,13 +5,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/babylonlabs-io/babylon/testutil/datagen"
-	"github.com/btcsuite/btcd/btcec/v2/schnorr"
-	"github.com/stretchr/testify/require"
-
 	"github.com/Manta-Network/manta-fp/eotsmanager/config"
 	"github.com/Manta-Network/manta-fp/eotsmanager/store"
 	"github.com/Manta-Network/manta-fp/testutil"
+
+	"github.com/babylonlabs-io/babylon/testutil/datagen"
+	"github.com/btcsuite/btcd/btcec/v2/schnorr"
+	"github.com/stretchr/testify/require"
 )
 
 // FuzzEOTSStore tests save and show EOTS key names properly

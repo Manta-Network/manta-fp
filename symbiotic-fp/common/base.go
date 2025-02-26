@@ -1,9 +1,10 @@
 package common
 
 import (
-	"github.com/pkg/errors"
 	"math/big"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 var (

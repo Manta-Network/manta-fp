@@ -2,10 +2,11 @@ package service
 
 import (
 	"fmt"
-	"go.uber.org/zap"
 	"time"
 
 	"github.com/Manta-Network/manta-fp/types"
+
+	"go.uber.org/zap"
 )
 
 // CommitPubRandTiming - helper struct used to capture times for benchmark

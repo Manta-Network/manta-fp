@@ -9,14 +9,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/avast/retry-go/v4"
-	bbntypes "github.com/babylonlabs-io/babylon/types"
-	ftypes "github.com/babylonlabs-io/babylon/x/finality/types"
-	"github.com/btcsuite/btcd/btcec/v2"
-	"github.com/gogo/protobuf/jsonpb"
-	"go.uber.org/atomic"
-	"go.uber.org/zap"
-
 	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
 	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
 	"github.com/Manta-Network/manta-fp/bbn-fp/store"
@@ -26,6 +18,14 @@ import (
 	"github.com/Manta-Network/manta-fp/l2chain/opstack"
 	"github.com/Manta-Network/manta-fp/metrics"
 	"github.com/Manta-Network/manta-fp/types"
+
+	"github.com/avast/retry-go/v4"
+	bbntypes "github.com/babylonlabs-io/babylon/types"
+	ftypes "github.com/babylonlabs-io/babylon/x/finality/types"
+	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/gogo/protobuf/jsonpb"
+	"go.uber.org/atomic"
+	"go.uber.org/zap"
 )
 
 type FinalityProviderInstance struct {

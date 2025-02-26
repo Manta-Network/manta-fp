@@ -5,15 +5,14 @@ import (
 	"os"
 	"testing"
 
-	"github.com/babylonlabs-io/babylon/testutil/datagen"
-	"github.com/stretchr/testify/require"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/Manta-Network/manta-fp/bbn-fp/config"
 	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
 	fpstore "github.com/Manta-Network/manta-fp/bbn-fp/store"
 	"github.com/Manta-Network/manta-fp/testutil"
+
+	"github.com/babylonlabs-io/babylon/testutil/datagen"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
 )
 
 // FuzzFinalityProvidersStore tests save and list finality providers properly

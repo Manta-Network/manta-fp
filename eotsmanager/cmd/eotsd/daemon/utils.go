@@ -4,13 +4,13 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/Manta-Network/manta-fp/util"
+
 	"github.com/babylonlabs-io/babylon/app/params"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/spf13/cobra"
-
-	"github.com/Manta-Network/manta-fp/util"
 )
 
 func getHomePath(cmd *cobra.Command) (string, error) {

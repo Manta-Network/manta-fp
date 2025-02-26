@@ -4,18 +4,23 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	wasmdparams "github.com/CosmWasm/wasmd/app/params"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"math/big"
 	"strings"
 	"time"
 
+	ethrpc "github.com/ethereum/go-ethereum/rpc"
+
+	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
 	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
+	cwclient "github.com/Manta-Network/manta-fp/cosmwasmclient/client"
+	cwconfig "github.com/Manta-Network/manta-fp/cosmwasmclient/config"
+	opclient "github.com/Manta-Network/manta-fp/ethereum/node"
+	"github.com/Manta-Network/manta-fp/types"
 
 	sdkErr "cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	cwclient "github.com/Manta-Network/manta-fp/cosmwasmclient/client"
-	cwconfig "github.com/Manta-Network/manta-fp/cosmwasmclient/config"
+	wasmdparams "github.com/CosmWasm/wasmd/app/params"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	bbnapp "github.com/babylonlabs-io/babylon/app"
 	bbnclient "github.com/babylonlabs-io/babylon/client/client"
 	bbntypes "github.com/babylonlabs-io/babylon/types"
@@ -32,13 +37,8 @@ import (
 	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
 	sttypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/relayer/v2/relayer/provider"
-	ethrpc "github.com/ethereum/go-ethereum/rpc"
 	"go.uber.org/zap"
 	protobuf "google.golang.org/protobuf/proto"
-
-	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
-	opclient "github.com/Manta-Network/manta-fp/ethereum/node"
-	"github.com/Manta-Network/manta-fp/types"
 )
 
 const (

@@ -5,18 +5,18 @@ import (
 	"net"
 	"path/filepath"
 
+	fpcmd "github.com/Manta-Network/manta-fp/bbn-fp/cmd"
+	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
+	"github.com/Manta-Network/manta-fp/bbn-fp/service"
+	"github.com/Manta-Network/manta-fp/log"
+	"github.com/Manta-Network/manta-fp/util"
+
 	"github.com/babylonlabs-io/babylon/types"
 	"github.com/btcsuite/btcwallet/walletdb"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/lightningnetwork/lnd/signal"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
-
-	fpcmd "github.com/Manta-Network/manta-fp/bbn-fp/cmd"
-	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
-	"github.com/Manta-Network/manta-fp/bbn-fp/service"
-	"github.com/Manta-Network/manta-fp/log"
-	"github.com/Manta-Network/manta-fp/util"
 )
 
 // CommandStart returns the start command of bfpd daemon.

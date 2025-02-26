@@ -3,11 +3,13 @@ package node
 import (
 	"errors"
 	"fmt"
-	"go.uber.org/zap"
 	"math/big"
 
-	"github.com/Manta-Network/manta-fp/ethereum/bigint"
 	"github.com/ethereum/go-ethereum/core/types"
+
+	"github.com/Manta-Network/manta-fp/ethereum/bigint"
+
+	"go.uber.org/zap"
 )
 
 var (

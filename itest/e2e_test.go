@@ -12,16 +12,15 @@ import (
 	"testing"
 	"time"
 
-	bbntypes "github.com/babylonlabs-io/babylon/types"
-	bstypes "github.com/babylonlabs-io/babylon/x/btcstaking/types"
+	"github.com/Manta-Network/manta-fp/bbn-fp/cmd/bfpd/daemon"
+	"github.com/Manta-Network/manta-fp/types"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/babylonlabs-io/babylon/testutil/datagen"
+	bbntypes "github.com/babylonlabs-io/babylon/types"
+	bstypes "github.com/babylonlabs-io/babylon/x/btcstaking/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/stretchr/testify/require"
-
-	"github.com/Manta-Network/manta-fp/bbn-fp/cmd/bfpd/daemon"
-	"github.com/Manta-Network/manta-fp/types"
 )
 
 var (

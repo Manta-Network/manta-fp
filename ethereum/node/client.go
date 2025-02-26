@@ -2,18 +2,22 @@ package node
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
 	"math/big"
 	"net"
+	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/rpc"
 
 	retry2 "github.com/Manta-Network/manta-fp/ethereum/retry"
@@ -338,4 +342,24 @@ func IsURLAvailable(address string) bool {
 		return false
 	}
 	return true
+}
+
+func DialEthClientWithTimeout(ctx context.Context, url string, disableHTTP2 bool) (
+	*ethclient.Client, error) {
+	ctxt, cancel := context.WithTimeout(ctx, defaultDialTimeout)
+	defer cancel()
+	if strings.HasPrefix(url, "http") {
+		httpClient := new(http.Client)
+		if disableHTTP2 {
+			httpClient.Transport = &http.Transport{
+				TLSNextProto: make(map[string]func(authority string, c *tls.Conn) http.RoundTripper),
+			}
+		}
+		rpcClient, err := rpc.DialHTTPWithClient(url, httpClient)
+		if err != nil {
+			return nil, err
+		}
+		return ethclient.NewClient(rpcClient), nil
+	}
+	return ethclient.DialContext(ctxt, url)
 }

@@ -10,11 +10,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lightningnetwork/lnd/signal"
-	"github.com/ory/dockertest/v3"
-
+	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
+	"github.com/Manta-Network/manta-fp/bbn-fp/service"
+	fpcc "github.com/Manta-Network/manta-fp/clientcontroller"
+	"github.com/Manta-Network/manta-fp/eotsmanager/client"
+	eotsconfig "github.com/Manta-Network/manta-fp/eotsmanager/config"
 	"github.com/Manta-Network/manta-fp/itest/container"
 	"github.com/Manta-Network/manta-fp/testutil"
+	"github.com/Manta-Network/manta-fp/types"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/babylonlabs-io/babylon/btcstaking"
@@ -33,15 +36,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkquerytypes "github.com/cosmos/cosmos-sdk/types/query"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/lightningnetwork/lnd/signal"
+	"github.com/ory/dockertest/v3"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-
-	fpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
-	"github.com/Manta-Network/manta-fp/bbn-fp/service"
-	fpcc "github.com/Manta-Network/manta-fp/clientcontroller"
-	"github.com/Manta-Network/manta-fp/eotsmanager/client"
-	eotsconfig "github.com/Manta-Network/manta-fp/eotsmanager/config"
-	"github.com/Manta-Network/manta-fp/types"
 )
 
 var (

@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
+
 	sdkmath "cosmossdk.io/math"
 	bbntypes "github.com/babylonlabs-io/babylon/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
 )
 
 type FinalityProviderServiceGRpcClient struct {

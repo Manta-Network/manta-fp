@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Manta-Network/manta-fp/eotsmanager"
+	"github.com/Manta-Network/manta-fp/eotsmanager/proto"
+	"github.com/Manta-Network/manta-fp/eotsmanager/types"
+
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"github.com/Manta-Network/manta-fp/eotsmanager"
-	"github.com/Manta-Network/manta-fp/eotsmanager/proto"
-	"github.com/Manta-Network/manta-fp/eotsmanager/types"
 )
 
 var _ eotsmanager.EOTSManager = &EOTSManagerGRpcClient{}
