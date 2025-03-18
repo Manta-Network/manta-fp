@@ -28,7 +28,7 @@ tmp/
 build/
 dist/
 eotsd/
-sfpd/
-bfpd/
+sfpdc/
+bfpdc/
 
 *.swp
