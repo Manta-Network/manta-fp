@@ -1,6 +1,6 @@
 FROM golang:1.23-alpine3.21 as builder
 
-RUN apk add --no-cache make gcc musl-dev linux-headers git
+RUN apk add --no-cache make gcc musl-dev linux-headers git libc6-compat build-base
 
 WORKDIR /app/manta-fp
 
