@@ -25,6 +25,7 @@ func CommandStart() *cobra.Command {
 		RunE:    runStartCmd,
 	}
 	cmd.Flags().String(PrivateKeyFlag, "", "The private key of the symbiotic-fp to sign")
+	cmd.Flags().String(AuthTokenFlag, "", "The auth token of celestia node")
 	return cmd
 }
 
@@ -36,6 +37,10 @@ func runStartCmd(cmd *cobra.Command, _ []string) error {
 	priKey, err := cmd.Flags().GetString(PrivateKeyFlag)
 	if err != nil {
 		return fmt.Errorf("failed to read flag %s: %w", PrivateKeyFlag, err)
+	}
+	authToken, err := cmd.Flags().GetString(AuthTokenFlag)
+	if err != nil {
+		return fmt.Errorf("failed to read flag %s: %w", AuthTokenFlag, err)
 	}
 	homePath, err := filepath.Abs(home)
 	if err != nil {
@@ -70,7 +75,7 @@ func runStartCmd(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize the manta staking middleware config: %w", err)
 	}
-	mantaStakeServer, err := mantastaking.NewMantaStakingMiddleware(mSMCfg, cfg, dbBackend, logger)
+	mantaStakeServer, err := mantastaking.NewMantaStakingMiddleware(mSMCfg, cfg, dbBackend, logger, authToken)
 	if err != nil {
 		return fmt.Errorf("failed to initialize the manta staking middleware: %w", err)
 	}

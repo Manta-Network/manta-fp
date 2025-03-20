@@ -21,7 +21,7 @@ type DAClient struct {
 	GetTimeout time.Duration
 }
 
-func NewDAClient(cfg config.CelestiaConfig) (*DAClient, error) {
+func NewDAClient(cfg config.CelestiaConfig, authToken string) (*DAClient, error) {
 	nsBytes, err := hex.DecodeString(cfg.Namespace)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func NewDAClient(cfg config.CelestiaConfig) (*DAClient, error) {
 	}
 	var client da.DA
 	if cfg.DaRpc != "" {
-		client, err = proxy.NewClient(cfg.DaRpc, cfg.AuthToken)
+		client, err = proxy.NewClient(cfg.DaRpc, authToken)
 		if err != nil {
 			return nil, err
 		}

@@ -56,7 +56,7 @@ type MantaStakingMiddleware struct {
 	quit      chan struct{}
 }
 
-func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *config.Config, db kvdb.Backend, log *zap.Logger) (*MantaStakingMiddleware, error) {
+func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *config.Config, db kvdb.Backend, log *zap.Logger, authToken string) (*MantaStakingMiddleware, error) {
 	mantaStakingMiddlewareContract, err := bindings.NewMantaStakingMiddleware(
 		mCfg.MantaStakingMiddlewareAddr, mCfg.EthClient,
 	)
@@ -105,7 +105,7 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 		return nil, fmt.Errorf("failed to new op chain poller, err: %w", err)
 	}
 
-	daClient, err := celestia.NewDAClient(*config.CelestiaConfig)
+	daClient, err := celestia.NewDAClient(*config.CelestiaConfig, authToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to new celestia da client, err: %w", err)
 	}
