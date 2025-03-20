@@ -1,6 +1,4 @@
-FROM golang:1.23-alpine3.21 as builder
-
-RUN apk add --no-cache make gcc musl-dev linux-headers git libc6-compat build-base
+FROM golang:1.23 as builder
 
 WORKDIR /app/manta-fp
 
@@ -8,11 +6,14 @@ COPY . .
 
 RUN make build
 
-FROM alpine:3.21
+FROM debian:bullseye-slim
 
 WORKDIR /app/manta-fp
 
-RUN apk add --no-cache ca-certificates busybox-extras
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates net-tools \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 COPY --from=builder /app/manta-fp/build/eotsd .
 COPY --from=builder /app/manta-fp/build/bfpd .
