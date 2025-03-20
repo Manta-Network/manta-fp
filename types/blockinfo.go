@@ -30,9 +30,9 @@ type StateRoot struct {
 }
 
 type SignRequest struct {
-	StateRoot   [32]byte `json:"state_root"`
-	Signature   []byte   `json:"signature"`
-	SignAddress string   `json:"sign_address"`
+	StateRoot   string `json:"state_root"`
+	Signature   []byte `json:"signature"`
+	SignAddress string `json:"sign_address"`
 }
 
 type OperatorPaused struct {

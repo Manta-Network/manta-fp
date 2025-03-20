@@ -25,7 +25,6 @@ import (
 	"github.com/Manta-Network/manta-fp/symbiotic-fp/celestia"
 	common2 "github.com/Manta-Network/manta-fp/symbiotic-fp/common"
 	"github.com/Manta-Network/manta-fp/symbiotic-fp/config"
-	"github.com/Manta-Network/manta-fp/symbiotic-fp/service"
 	"github.com/Manta-Network/manta-fp/symbiotic-fp/store"
 	"github.com/Manta-Network/manta-fp/symbiotic-fp/txmgr"
 	types2 "github.com/Manta-Network/manta-fp/types"
@@ -47,7 +46,6 @@ type MantaStakingMiddleware struct {
 	log                               *zap.Logger
 	ChainPoller                       *OpChainPoller
 	DAClient                          *celestia.DAClient
-	sRpcService                       service.CelestiaService
 
 	SignatureSubmissionInterval time.Duration
 	SubmissionRetryInterval     time.Duration
@@ -112,11 +110,6 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 		return nil, fmt.Errorf("failed to new celestia da client, err: %w", err)
 	}
 
-	sRpcService, err := service.NewSymbioticRpcService(fmt.Sprintf("%s:%s", config.GrpcHost, config.GrpcPort))
-	if err != nil {
-		return nil, fmt.Errorf("failed to new symbiotic rpc service, err: %w", err)
-	}
-
 	return &MantaStakingMiddleware{
 		Ctx:                               context.Background(),
 		Cfg:                               mCfg,
@@ -128,7 +121,6 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 		log:                               log,
 		ChainPoller:                       poller,
 		DAClient:                          daClient,
-		sRpcService:                       sRpcService,
 		PrivateKey:                        mCfg.PrivateKey,
 		isStarted:                         atomic.NewBool(false),
 		SignatureSubmissionInterval:       config.SignatureSubmissionInterval,
@@ -307,7 +299,7 @@ func (msm *MantaStakingMiddleware) SubmitBatchFinalitySignatures(ctx context.Con
 	}
 
 	signRequest := types2.SignRequest{
-		StateRoot:   stateRoot,
+		StateRoot:   hex.EncodeToString(stateRoot[:]),
 		Signature:   signature,
 		SignAddress: msm.WalletAddr.String(),
 	}
@@ -334,13 +326,7 @@ func (msm *MantaStakingMiddleware) SubmitBatchFinalitySignatures(ctx context.Con
 					valids, err := msm.DAClient.Client.Validate(ctx2, ids, proofs, msm.DAClient.Namespace)
 					cancel()
 					if err == nil && len(valids) == 1 && valids[0] == true {
-						response, err := msm.sRpcService.StateRootSignIDs(hex.EncodeToString(ids[0]), blocks[len(blocks)-1].L1BlockNumber)
-						if err != nil {
-							msm.log.Error("failed to send ids to manta relayer manager", zap.String("err", err.Error()))
-						}
-						if response.Success {
-							msm.log.Info("success to send ids to manta relayer manager")
-						}
+						msm.log.Info("success to send finality signature to celestia")
 					} else {
 						msm.log.Error("celestia: failed to validate proof",
 							zap.String("err", err.Error()),
@@ -443,7 +429,7 @@ func (msm *MantaStakingMiddleware) registerOperator(ctx context.Context) (*types
 	opts.Context = ctx
 	opts.Nonce = nonce
 	opts.NoSend = true
-	tx, err := msm.MantaStakingMiddlewareContract.RegisterOperator(opts, "hk", common.HexToAddress("1"), big.NewInt(1))
+	tx, err := msm.MantaStakingMiddlewareContract.RegisterOperator(opts, msm.Cfg.OperatorName, common.HexToAddress(msm.Cfg.RewardAddress), big.NewInt(1))
 	if err != nil {
 		return nil, err
 	}

@@ -22,8 +22,6 @@ const (
 	defaultSubmitRetryInterval         = 1 * time.Second
 	defaultSignatureSubmissionInterval = 1 * time.Second
 	defaultMaxSubmissionRetries        = 20
-	defaultGrpcHost                    = "http://127.0.0.1"
-	defaultGrpcPort                    = "34500"
 )
 
 var (
@@ -34,10 +32,9 @@ type Config struct {
 	SubmissionRetryInterval     time.Duration `long:"submissionretryinterval" description:"The interval between each attempt to submit finality signature or public randomness after a failure"`
 	SignatureSubmissionInterval time.Duration `long:"signaturesubmissioninterval" description:"The interval between each finality signature(s) submission"`
 	MaxSubmissionRetries        uint32        `long:"maxsubmissionretries" description:"The maximum number of retries to submit finality signature or public randomness"`
-	GrpcHost                    string        `long:"grpchost" description:"The grpc host of manta relayer"`
-	GrpcPort                    string        `long:"grpcport" description:"The grpc port of manta relayer"`
-
-	LogLevel string `long:"loglevel" description:"Logging level for all subsystems" choice:"trace" choice:"debug" choice:"info" choice:"warn" choice:"error" choice:"fatal"`
+	OperatorName                string        `long:"operatorname" description:"The name of operator; The name needs to be registered in the contract"`
+	RewardAddress               string        `long:"rewardaddress" description:"The manta address to receive fp rewards"`
+	LogLevel                    string        `long:"loglevel" description:"Logging level for all subsystems" choice:"trace" choice:"debug" choice:"info" choice:"warn" choice:"error" choice:"fatal"`
 
 	OpEventConfig *OpEventConfig `group:"opeventconfig" namespace:"opeventconfig"`
 
@@ -55,8 +52,6 @@ func DefaultConfigWithHome(homePath string) Config {
 		SignatureSubmissionInterval: defaultSignatureSubmissionInterval,
 		SubmissionRetryInterval:     defaultSubmitRetryInterval,
 		MaxSubmissionRetries:        defaultMaxSubmissionRetries,
-		GrpcPort:                    defaultGrpcPort,
-		GrpcHost:                    defaultGrpcHost,
 		LogLevel:                    defaultLogLevel.String(),
 		DatabaseConfig:              DefaultDBConfigWithHomePath(homePath),
 		OpEventConfig:               &opEventConfig,

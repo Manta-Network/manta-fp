@@ -23,12 +23,12 @@ type MantaStakingMiddlewareConfig struct {
 	PrivateKey                 *ecdsa.PrivateKey
 	NumConfirmations           uint64
 	SafeAbortNonceTooLowCount  uint64
+	OperatorName               string
+	RewardAddress              string
 	EnableHsm                  bool
 	HsmApiName                 string
 	HsmCreden                  string
 	HsmAddress                 string
-	GrpcHost                   string
-	GrpcPort                   string
 }
 
 func NewMantaStakingMiddlewareConfig(ctx context.Context, config *cfg.Config, logger *zap.Logger, priKeyS string) (*MantaStakingMiddlewareConfig, error) {
@@ -54,11 +54,11 @@ func NewMantaStakingMiddlewareConfig(ctx context.Context, config *cfg.Config, lo
 		PrivateKey:                 privKey,
 		NumConfirmations:           config.OpEventConfig.NumConfirmations,
 		SafeAbortNonceTooLowCount:  config.OpEventConfig.SafeAbortNonceTooLowCount,
+		OperatorName:               config.OperatorName,
+		RewardAddress:              config.RewardAddress,
 		EnableHsm:                  config.OpEventConfig.EnableHsm,
 		HsmApiName:                 config.OpEventConfig.HsmApiName,
 		HsmCreden:                  config.OpEventConfig.HsmCreden,
 		HsmAddress:                 config.OpEventConfig.HsmAddress,
-		GrpcHost:                   config.GrpcHost,
-		GrpcPort:                   config.GrpcPort,
 	}, nil
 }
