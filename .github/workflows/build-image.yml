@@ -1,0 +1,86 @@
+name: build-release
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  REPO_NAME: ${{ vars.REPO_NAME }}
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+    branches:
+      - 'feat-*'
+      - 'bugfix-*'
+
+jobs:
+  determine-tag:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.set_tag.outputs.tag }}
+      short_sha: ${{ steps.get_short_sha.outputs.sha_short }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set short sha
+        id: get_short_sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Set timestamp
+        id: set_timestamp
+        if: startsWith(github.ref, 'refs/heads/feat-') || startsWith(github.ref, 'refs/heads/bugfix-')
+        run: |
+          TZ='Asia/Shanghai' date +"timestamp=%Y%m%d-%H%M%S" >> $GITHUB_ENV
+
+      - name: Set tag for branches
+        id: set_branch_tag
+        if: startsWith(github.ref, 'refs/heads/feat-') || startsWith(github.ref, 'refs/heads/bugfix-')
+        run: echo "tag=${GITHUB_REF_NAME}-${{ env.timestamp }}-${{ steps.get_short_sha.outputs.sha_short }}" >> $GITHUB_ENV
+
+      - name: Set tag for tags
+        id: set_tag_tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: echo "tag=${GITHUB_REF_NAME}" >> $GITHUB_ENV
+
+      - name: Set final tag
+        id: set_tag
+        run: echo "tag=${{ env.tag }}" >> $GITHUB_OUTPUT
+
+  build-and-push-images:
+    needs: determine-tag
+    runs-on: ubuntu-latest
+    name: Build and push image
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/amd64
+          push: true
+          provenance: false
+          build-args: |
+            TAG=${{ needs.determine-tag.outputs.tag }}
+            SHA=${{ needs.determine-tag.outputs.short_sha }}
+          tags: |
+            ${{ env.REPO_NAME }}:${{ needs.determine-tag.outputs.tag }}
