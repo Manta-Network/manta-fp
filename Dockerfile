@@ -6,7 +6,7 @@ COPY . .
 
 RUN make build
 
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 WORKDIR /app/manta-fp
 
