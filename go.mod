@@ -71,7 +71,7 @@ require (
 	cosmossdk.io/x/evidence v0.1.1 // indirect
 	cosmossdk.io/x/feegrant v0.1.1 // indirect
 	cosmossdk.io/x/nft v0.1.1 // indirect
-	cosmossdk.io/x/tx v0.13.4 // indirect
+	cosmossdk.io/x/tx v0.13.7 // indirect
 	cosmossdk.io/x/upgrade v0.1.4 // indirect
 	dario.cat/mergo v1.0.0 // indirect
 	filippo.io/edwards25519 v1.0.0 // indirect
