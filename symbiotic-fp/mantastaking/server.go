@@ -17,18 +17,19 @@ import (
 )
 
 type MantaStakingMiddlewareConfig struct {
-	EthClient                  *ethclient.Client
-	ChainID                    *big.Int
-	MantaStakingMiddlewareAddr common.Address
-	PrivateKey                 *ecdsa.PrivateKey
-	NumConfirmations           uint64
-	SafeAbortNonceTooLowCount  uint64
-	OperatorName               string
-	RewardAddress              string
-	EnableHsm                  bool
-	HsmApiName                 string
-	HsmCreden                  string
-	HsmAddress                 string
+	EthClient                     *ethclient.Client
+	ChainID                       *big.Int
+	MantaStakingMiddlewareAddr    common.Address
+	SymbioticOperatorRegisterAddr common.Address
+	PrivateKey                    *ecdsa.PrivateKey
+	NumConfirmations              uint64
+	SafeAbortNonceTooLowCount     uint64
+	OperatorName                  string
+	RewardAddress                 string
+	EnableHsm                     bool
+	HsmApiName                    string
+	HsmCreden                     string
+	HsmAddress                    string
 }
 
 func NewMantaStakingMiddlewareConfig(ctx context.Context, config *cfg.Config, logger *zap.Logger, priKeyS string) (*MantaStakingMiddlewareConfig, error) {
@@ -48,17 +49,18 @@ func NewMantaStakingMiddlewareConfig(ctx context.Context, config *cfg.Config, lo
 	}
 
 	return &MantaStakingMiddlewareConfig{
-		EthClient:                  ethClient,
-		ChainID:                    big.NewInt(int64(config.OpEventConfig.ChainId)),
-		MantaStakingMiddlewareAddr: common.HexToAddress(config.OpEventConfig.MantaStakingMiddlewareAddress),
-		PrivateKey:                 privKey,
-		NumConfirmations:           config.OpEventConfig.NumConfirmations,
-		SafeAbortNonceTooLowCount:  config.OpEventConfig.SafeAbortNonceTooLowCount,
-		OperatorName:               config.OperatorName,
-		RewardAddress:              config.RewardAddress,
-		EnableHsm:                  config.OpEventConfig.EnableHsm,
-		HsmApiName:                 config.OpEventConfig.HsmApiName,
-		HsmCreden:                  config.OpEventConfig.HsmCreden,
-		HsmAddress:                 config.OpEventConfig.HsmAddress,
+		EthClient:                     ethClient,
+		ChainID:                       big.NewInt(int64(config.OpEventConfig.ChainId)),
+		MantaStakingMiddlewareAddr:    common.HexToAddress(config.OpEventConfig.MantaStakingMiddlewareAddress),
+		SymbioticOperatorRegisterAddr: common.HexToAddress(config.OpEventConfig.SymbioticOperatorRegisterAddress),
+		PrivateKey:                    privKey,
+		NumConfirmations:              config.OpEventConfig.NumConfirmations,
+		SafeAbortNonceTooLowCount:     config.OpEventConfig.SafeAbortNonceTooLowCount,
+		OperatorName:                  config.OperatorName,
+		RewardAddress:                 config.RewardAddress,
+		EnableHsm:                     config.OpEventConfig.EnableHsm,
+		HsmApiName:                    config.OpEventConfig.HsmApiName,
+		HsmCreden:                     config.OpEventConfig.HsmCreden,
+		HsmAddress:                    config.OpEventConfig.HsmAddress,
 	}, nil
 }

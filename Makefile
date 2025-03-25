@@ -4,6 +4,7 @@ TOOLS_DIR := tools
 BABYLON_PKG := github.com/babylonlabs-io/babylon/cmd/babylond
 
 MANTA_STAKING_ARTIFACT := ./manta-staking-contracts/out/MantaStakingMiddleware.sol/MantaStakingMiddleware.json
+SYMBIOTIC_REGISTER_ARTIFACT := ./core/out/OperatorRegistry.sol/OperatorRegistry.json
 
 GO_BIN := ${GOPATH}/bin
 BTCD_BIN := $(GO_BIN)/btcd
@@ -75,7 +76,7 @@ proto-gen:
 	make -C eotsmanager proto-gen
 	make -C finality-provider proto-gen
 
-binding:
+binding-msm:
 	$(eval temp := $(shell mktemp))
 
 	cat $(MANTA_STAKING_ARTIFACT) \
@@ -87,6 +88,22 @@ binding:
 		--abi - \
 		--out bindings/manta_staking_middleware.go \
 		--type MantaStakingMiddleware \
+		--bin $(temp)
+
+		rm $(temp)
+
+binding-sor:
+	$(eval temp := $(shell mktemp))
+
+	cat $(SYMBIOTIC_REGISTER_ARTIFACT) \
+    	| jq -r .bytecode.object > $(temp)
+
+	cat $(SYMBIOTIC_REGISTER_ARTIFACT) \
+		| jq .abi \
+		| abigen --pkg bindings \
+		--abi - \
+		--out bindings/symbiotic_operator_register.go \
+		--type SymbioticOperatorRegister \
 		--bin $(temp)
 
 		rm $(temp)
