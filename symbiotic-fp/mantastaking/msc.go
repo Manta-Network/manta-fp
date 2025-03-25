@@ -43,8 +43,6 @@ type MantaStakingMiddleware struct {
 	RawSymbioticOperatorRegisterContract *bind.BoundContract
 	WalletAddr                           common.Address
 	PrivateKey                           *ecdsa.PrivateKey
-	MantaStakingMiddlewareABI            *abi.ABI
-	SymbioticOperatorRegisterABI         *abi.ABI
 	txMgr                                txmgr.TxManager
 	log                                  *zap.Logger
 	ChainPoller                          *OpChainPoller
@@ -72,10 +70,6 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 	if err != nil {
 		return nil, err
 	}
-	mantaStakingMiddlewareABI, err := bindings.MantaStakingMiddlewareMetaData.GetAbi()
-	if err != nil {
-		return nil, err
-	}
 	rawMantaStakingMiddlewareContract := bind.NewBoundContract(
 		mCfg.MantaStakingMiddlewareAddr, mParsed, mCfg.EthClient, mCfg.EthClient,
 		mCfg.EthClient,
@@ -90,10 +84,6 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 	sParsed, err := abi.JSON(strings.NewReader(
 		bindings.SymbioticOperatorRegisterMetaData.ABI,
 	))
-	if err != nil {
-		return nil, err
-	}
-	symbioticOperatorRegisterABI, err := bindings.SymbioticOperatorRegisterMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
@@ -142,8 +132,6 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 		SymbioticOperatorRegisterContract:    symbioticOperatorRegisterContract,
 		RawSymbioticOperatorRegisterContract: rawSymbioticOperatorRegisterContract,
 		WalletAddr:                           walletAddr,
-		MantaStakingMiddlewareABI:            mantaStakingMiddlewareABI,
-		SymbioticOperatorRegisterABI:         symbioticOperatorRegisterABI,
 		txMgr:                                txMgr,
 		log:                                  log,
 		ChainPoller:                          poller,
@@ -396,7 +384,7 @@ func (msm *MantaStakingMiddleware) getAllBlocksFromChan() []*types2.BlockInfo {
 	}
 }
 
-func (msm *MantaStakingMiddleware) UpdateGasPrice(ctx context.Context, tx *types.Transaction) (*types.Transaction, error) {
+func (msm *MantaStakingMiddleware) UpdateMantaStakingGasPrice(ctx context.Context, tx *types.Transaction) (*types.Transaction, error) {
 	var opts *bind.TransactOpts
 	var err error
 	if !msm.Cfg.EnableHsm {
@@ -414,6 +402,30 @@ func (msm *MantaStakingMiddleware) UpdateGasPrice(ctx context.Context, tx *types
 	opts.Nonce = new(big.Int).SetUint64(tx.Nonce())
 	opts.NoSend = true
 	finalTx, err := msm.RawMantaStakingMiddlewareContract.RawTransact(opts, tx.Data())
+	if err != nil {
+		return nil, err
+	}
+	return finalTx, nil
+}
+
+func (msm *MantaStakingMiddleware) UpdateSymbioticGasPrice(ctx context.Context, tx *types.Transaction) (*types.Transaction, error) {
+	var opts *bind.TransactOpts
+	var err error
+	if !msm.Cfg.EnableHsm {
+		opts, err = bind.NewKeyedTransactorWithChainID(
+			msm.Cfg.PrivateKey, msm.Cfg.ChainID,
+		)
+	} else {
+		opts, err = common2.NewHSMTransactOpts(ctx, msm.Cfg.HsmApiName,
+			msm.Cfg.HsmAddress, msm.Cfg.ChainID, msm.Cfg.HsmCreden)
+	}
+	if err != nil {
+		return nil, err
+	}
+	opts.Context = ctx
+	opts.Nonce = new(big.Int).SetUint64(tx.Nonce())
+	opts.NoSend = true
+	finalTx, err := msm.RawSymbioticOperatorRegisterContract.RawTransact(opts, tx.Data())
 	if err != nil {
 		return nil, err
 	}
@@ -474,7 +486,7 @@ func (msm *MantaStakingMiddleware) RegisterSymbioticOperator() (*types.Receipt, 
 		return nil, err
 	}
 	updateGasPrice := func(ctx context.Context) (*types.Transaction, error) {
-		return msm.UpdateGasPrice(ctx, tx)
+		return msm.UpdateSymbioticGasPrice(ctx, tx)
 	}
 	receipt, err := msm.txMgr.Send(
 		msm.Ctx, updateGasPrice, msm.SendTransaction,
@@ -516,7 +528,16 @@ func (msm *MantaStakingMiddleware) registerOperator(ctx context.Context) (*types
 	opts.Context = ctx
 	opts.Nonce = nonce
 	opts.NoSend = true
-	tx, err := msm.MantaStakingMiddlewareContract.RegisterOperator(opts, msm.Cfg.OperatorName, common.HexToAddress(msm.Cfg.RewardAddress), big.NewInt(1))
+
+	xBytes := msm.PrivateKey.PublicKey.X.Bytes()
+	yBytes := msm.PrivateKey.PublicKey.Y.Bytes()
+	paddedX := make([]byte, 32)
+	copy(paddedX[32-len(xBytes):], xBytes)
+	paddedY := make([]byte, 32)
+	copy(paddedY[32-len(yBytes):], yBytes)
+	publicKeyBytes := append(paddedX, paddedY...)
+
+	tx, err := msm.MantaStakingMiddlewareContract.RegisterOperator(opts, publicKeyBytes, msm.Cfg.OperatorName, common.HexToAddress(msm.Cfg.RewardAddress), big.NewInt(msm.Cfg.Commission))
 	if err != nil {
 		return nil, err
 	}
@@ -529,7 +550,7 @@ func (msm *MantaStakingMiddleware) RegisterOperator() (*types.Receipt, error) {
 		return nil, err
 	}
 	updateGasPrice := func(ctx context.Context) (*types.Transaction, error) {
-		return msm.UpdateGasPrice(ctx, tx)
+		return msm.UpdateMantaStakingGasPrice(ctx, tx)
 	}
 	receipt, err := msm.txMgr.Send(
 		msm.Ctx, updateGasPrice, msm.SendTransaction,

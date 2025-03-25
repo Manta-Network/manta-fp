@@ -26,6 +26,7 @@ type MantaStakingMiddlewareConfig struct {
 	SafeAbortNonceTooLowCount     uint64
 	OperatorName                  string
 	RewardAddress                 string
+	Commission                    int64
 	EnableHsm                     bool
 	HsmApiName                    string
 	HsmCreden                     string
@@ -58,6 +59,7 @@ func NewMantaStakingMiddlewareConfig(ctx context.Context, config *cfg.Config, lo
 		SafeAbortNonceTooLowCount:     config.OpEventConfig.SafeAbortNonceTooLowCount,
 		OperatorName:                  config.OperatorName,
 		RewardAddress:                 config.RewardAddress,
+		Commission:                    int64(config.Commission),
 		EnableHsm:                     config.OpEventConfig.EnableHsm,
 		HsmApiName:                    config.OpEventConfig.HsmApiName,
 		HsmCreden:                     config.OpEventConfig.HsmCreden,

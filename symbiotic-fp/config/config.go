@@ -22,6 +22,7 @@ const (
 	defaultSubmitRetryInterval         = 1 * time.Second
 	defaultSignatureSubmissionInterval = 1 * time.Second
 	defaultMaxSubmissionRetries        = 20
+	defaultCommission                  = 1000
 )
 
 var (
@@ -34,6 +35,7 @@ type Config struct {
 	MaxSubmissionRetries        uint32        `long:"maxsubmissionretries" description:"The maximum number of retries to submit finality signature or public randomness"`
 	OperatorName                string        `long:"operatorname" description:"The name of operator; The name needs to be registered in the contract"`
 	RewardAddress               string        `long:"rewardaddress" description:"The manta address to receive fp rewards"`
+	Commission                  uint64        `long:"commission" description:"The custom commission, 10000 = 100%"`
 	LogLevel                    string        `long:"loglevel" description:"Logging level for all subsystems" choice:"trace" choice:"debug" choice:"info" choice:"warn" choice:"error" choice:"fatal"`
 
 	OpEventConfig *OpEventConfig `group:"opeventconfig" namespace:"opeventconfig"`
@@ -52,6 +54,9 @@ func DefaultConfigWithHome(homePath string) Config {
 		SignatureSubmissionInterval: defaultSignatureSubmissionInterval,
 		SubmissionRetryInterval:     defaultSubmitRetryInterval,
 		MaxSubmissionRetries:        defaultMaxSubmissionRetries,
+		OperatorName:                "",
+		RewardAddress:               defaultEthAddr,
+		Commission:                  defaultCommission,
 		LogLevel:                    defaultLogLevel.String(),
 		DatabaseConfig:              DefaultDBConfigWithHomePath(homePath),
 		OpEventConfig:               &opEventConfig,
