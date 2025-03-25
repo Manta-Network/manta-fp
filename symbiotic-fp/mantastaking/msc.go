@@ -35,17 +35,20 @@ import (
 )
 
 type MantaStakingMiddleware struct {
-	Ctx                               context.Context
-	Cfg                               *MantaStakingMiddlewareConfig
-	MantaStakingMiddlewareContract    *bindings.MantaStakingMiddleware
-	RawMantaStakingMiddlewareContract *bind.BoundContract
-	WalletAddr                        common.Address
-	PrivateKey                        *ecdsa.PrivateKey
-	MantaStakingMiddlewareABI         *abi.ABI
-	txMgr                             txmgr.TxManager
-	log                               *zap.Logger
-	ChainPoller                       *OpChainPoller
-	DAClient                          *celestia.DAClient
+	Ctx                                  context.Context
+	Cfg                                  *MantaStakingMiddlewareConfig
+	MantaStakingMiddlewareContract       *bindings.MantaStakingMiddleware
+	RawMantaStakingMiddlewareContract    *bind.BoundContract
+	SymbioticOperatorRegisterContract    *bindings.SymbioticOperatorRegister
+	RawSymbioticOperatorRegisterContract *bind.BoundContract
+	WalletAddr                           common.Address
+	PrivateKey                           *ecdsa.PrivateKey
+	MantaStakingMiddlewareABI            *abi.ABI
+	SymbioticOperatorRegisterABI         *abi.ABI
+	txMgr                                txmgr.TxManager
+	log                                  *zap.Logger
+	ChainPoller                          *OpChainPoller
+	DAClient                             *celestia.DAClient
 
 	SignatureSubmissionInterval time.Duration
 	SubmissionRetryInterval     time.Duration
@@ -63,7 +66,7 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 	if err != nil {
 		return nil, err
 	}
-	parsed, err := abi.JSON(strings.NewReader(
+	mParsed, err := abi.JSON(strings.NewReader(
 		bindings.MantaStakingMiddlewareMetaData.ABI,
 	))
 	if err != nil {
@@ -73,8 +76,29 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 	if err != nil {
 		return nil, err
 	}
-	rawTreasureManagerContract := bind.NewBoundContract(
-		mCfg.MantaStakingMiddlewareAddr, parsed, mCfg.EthClient, mCfg.EthClient,
+	rawMantaStakingMiddlewareContract := bind.NewBoundContract(
+		mCfg.MantaStakingMiddlewareAddr, mParsed, mCfg.EthClient, mCfg.EthClient,
+		mCfg.EthClient,
+	)
+
+	symbioticOperatorRegisterContract, err := bindings.NewSymbioticOperatorRegister(
+		mCfg.SymbioticOperatorRegisterAddr, mCfg.EthClient,
+	)
+	if err != nil {
+		return nil, err
+	}
+	sParsed, err := abi.JSON(strings.NewReader(
+		bindings.SymbioticOperatorRegisterMetaData.ABI,
+	))
+	if err != nil {
+		return nil, err
+	}
+	symbioticOperatorRegisterABI, err := bindings.SymbioticOperatorRegisterMetaData.GetAbi()
+	if err != nil {
+		return nil, err
+	}
+	rawSymbioticOperatorRegisterContract := bind.NewBoundContract(
+		mCfg.SymbioticOperatorRegisterAddr, sParsed, mCfg.EthClient, mCfg.EthClient,
 		mCfg.EthClient,
 	)
 
@@ -111,20 +135,23 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 	}
 
 	return &MantaStakingMiddleware{
-		Ctx:                               context.Background(),
-		Cfg:                               mCfg,
-		MantaStakingMiddlewareContract:    mantaStakingMiddlewareContract,
-		RawMantaStakingMiddlewareContract: rawTreasureManagerContract,
-		WalletAddr:                        walletAddr,
-		MantaStakingMiddlewareABI:         mantaStakingMiddlewareABI,
-		txMgr:                             txMgr,
-		log:                               log,
-		ChainPoller:                       poller,
-		DAClient:                          daClient,
-		PrivateKey:                        mCfg.PrivateKey,
-		isStarted:                         atomic.NewBool(false),
-		SignatureSubmissionInterval:       config.SignatureSubmissionInterval,
-		SubmissionRetryInterval:           config.SubmissionRetryInterval,
+		Ctx:                                  context.Background(),
+		Cfg:                                  mCfg,
+		MantaStakingMiddlewareContract:       mantaStakingMiddlewareContract,
+		RawMantaStakingMiddlewareContract:    rawMantaStakingMiddlewareContract,
+		SymbioticOperatorRegisterContract:    symbioticOperatorRegisterContract,
+		RawSymbioticOperatorRegisterContract: rawSymbioticOperatorRegisterContract,
+		WalletAddr:                           walletAddr,
+		MantaStakingMiddlewareABI:            mantaStakingMiddlewareABI,
+		SymbioticOperatorRegisterABI:         symbioticOperatorRegisterABI,
+		txMgr:                                txMgr,
+		log:                                  log,
+		ChainPoller:                          poller,
+		DAClient:                             daClient,
+		PrivateKey:                           mCfg.PrivateKey,
+		isStarted:                            atomic.NewBool(false),
+		SignatureSubmissionInterval:          config.SignatureSubmissionInterval,
+		SubmissionRetryInterval:              config.SubmissionRetryInterval,
 	}, nil
 }
 
@@ -148,11 +175,16 @@ func (msm *MantaStakingMiddleware) Start() error {
 	}
 
 	if operator.OperatorName == "" {
-		receipt, err := msm.RegisterOperator()
+		receipt1, err := msm.RegisterSymbioticOperator()
 		if err != nil {
-			return fmt.Errorf("failed to register operator %w", err)
+			return fmt.Errorf("failed to register symbiotic operator %w", err)
 		}
-		msm.log.Info("success to register operator", zap.String("tx_hash", receipt.TxHash.String()))
+		msm.log.Info("success to register symbiotic operator", zap.String("tx_hash", receipt1.TxHash.String()))
+		receipt2, err := msm.RegisterOperator()
+		if err != nil {
+			return fmt.Errorf("failed to register manta staking operator %w", err)
+		}
+		msm.log.Info("success to register manta staking operator", zap.String("tx_hash", receipt2.TxHash.String()))
 	} else {
 		if operator.Paused {
 			msm.log.Error("operator is paused", zap.String("address", msm.WalletAddr.String()))
@@ -396,6 +428,61 @@ func (msm *MantaStakingMiddleware) IsMaxPriorityFeePerGasNotFoundError(err error
 	return strings.Contains(
 		err.Error(), common2.ErrMaxPriorityFeePerGasNotFound.Error(),
 	)
+}
+
+func (msm *MantaStakingMiddleware) registerSymbioticOperator(ctx context.Context) (*types.Transaction, error) {
+	balance, err := msm.Cfg.EthClient.BalanceAt(
+		msm.Ctx, msm.WalletAddr, nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	msm.log.Info("manta wallet address balance", zap.String("balance", balance.String()))
+
+	nonce64, err := msm.Cfg.EthClient.NonceAt(
+		msm.Ctx, msm.WalletAddr, nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+	nonce := new(big.Int).SetUint64(nonce64)
+	var opts *bind.TransactOpts
+	if !msm.Cfg.EnableHsm {
+		opts, err = bind.NewKeyedTransactorWithChainID(
+			msm.Cfg.PrivateKey, msm.Cfg.ChainID,
+		)
+	} else {
+		opts, err = common2.NewHSMTransactOpts(ctx, msm.Cfg.HsmApiName,
+			msm.Cfg.HsmAddress, msm.Cfg.ChainID, msm.Cfg.HsmCreden)
+	}
+	if err != nil {
+		return nil, err
+	}
+	opts.Context = ctx
+	opts.Nonce = nonce
+	opts.NoSend = true
+	tx, err := msm.SymbioticOperatorRegisterContract.RegisterOperator(opts)
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
+func (msm *MantaStakingMiddleware) RegisterSymbioticOperator() (*types.Receipt, error) {
+	tx, err := msm.registerSymbioticOperator(msm.Ctx)
+	if err != nil {
+		return nil, err
+	}
+	updateGasPrice := func(ctx context.Context) (*types.Transaction, error) {
+		return msm.UpdateGasPrice(ctx, tx)
+	}
+	receipt, err := msm.txMgr.Send(
+		msm.Ctx, updateGasPrice, msm.SendTransaction,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return receipt, nil
 }
 
 func (msm *MantaStakingMiddleware) registerOperator(ctx context.Context) (*types.Transaction, error) {
