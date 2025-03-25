@@ -12,7 +12,7 @@ WORKDIR /app/manta-fp
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates net-tools curl wget \
-    && wget -O /usr/lib/libwasmvm.x86_64.so https://github.com/CosmWasm/wasmvm/releases/download/v2.2.3/libwasmvm.x86_64.so \
+    && wget -O /usr/lib/libwasmvm.x86_64.so https://github.com/CosmWasm/wasmvm/releases/download/v2.1.3/libwasmvm.x86_64.so \
     && chmod +x /usr/lib/libwasmvm.x86_64.so \
     && ldconfig \
     && apt-get remove -y wget \
