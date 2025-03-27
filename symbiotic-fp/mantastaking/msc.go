@@ -32,6 +32,7 @@ import (
 	"github.com/lightningnetwork/lnd/kvdb"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/sha3"
 )
 
 type MantaStakingMiddleware struct {
@@ -157,12 +158,22 @@ func (msm *MantaStakingMiddleware) Start() error {
 		BlockNumber: big.NewInt(int64(latestBlock)),
 		From:        msm.WalletAddr,
 	}
+
+	isExist, err := msm.MantaStakingMiddlewareContract.OperatorNameExists(cOpts, Keccak256Hash([]byte(msm.Cfg.OperatorName)))
+	if err != nil {
+		return fmt.Errorf("failed to get operator operator name isExists: %v, err: %v", latestBlock, err)
+	}
+	if isExist {
+		return fmt.Errorf("operator name %s is exist, please choose a new name", msm.Cfg.OperatorName)
+	}
+
 	operator, err := msm.MantaStakingMiddlewareContract.Operators(cOpts, msm.WalletAddr)
 	if err != nil {
 		return fmt.Errorf("failed to get operator info at block: %v, err: %v", latestBlock, err)
 	}
 
 	if operator.OperatorName == "" {
+		msm.log.Info(fmt.Sprintf("address %s is not operator, start register", msm.WalletAddr.String()))
 		receipt1, err := msm.RegisterSymbioticOperator()
 		if err != nil {
 			return fmt.Errorf("failed to register symbiotic operator %w", err)
@@ -444,7 +455,7 @@ func (msm *MantaStakingMiddleware) IsMaxPriorityFeePerGasNotFoundError(err error
 
 func (msm *MantaStakingMiddleware) registerSymbioticOperator(ctx context.Context) (*types.Transaction, error) {
 	balance, err := msm.Cfg.EthClient.BalanceAt(
-		msm.Ctx, msm.WalletAddr, nil,
+		ctx, msm.WalletAddr, nil,
 	)
 	if err != nil {
 		return nil, err
@@ -452,7 +463,7 @@ func (msm *MantaStakingMiddleware) registerSymbioticOperator(ctx context.Context
 	msm.log.Info("manta wallet address balance", zap.String("balance", balance.String()))
 
 	nonce64, err := msm.Cfg.EthClient.NonceAt(
-		msm.Ctx, msm.WalletAddr, nil,
+		ctx, msm.WalletAddr, nil,
 	)
 	if err != nil {
 		return nil, err
@@ -481,7 +492,8 @@ func (msm *MantaStakingMiddleware) registerSymbioticOperator(ctx context.Context
 }
 
 func (msm *MantaStakingMiddleware) RegisterSymbioticOperator() (*types.Receipt, error) {
-	tx, err := msm.registerSymbioticOperator(msm.Ctx)
+	ctx := context.Background()
+	tx, err := msm.registerSymbioticOperator(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -489,7 +501,7 @@ func (msm *MantaStakingMiddleware) RegisterSymbioticOperator() (*types.Receipt, 
 		return msm.UpdateSymbioticGasPrice(ctx, tx)
 	}
 	receipt, err := msm.txMgr.Send(
-		msm.Ctx, updateGasPrice, msm.SendTransaction,
+		ctx, updateGasPrice, msm.SendTransaction,
 	)
 	if err != nil {
 		return nil, err
@@ -499,7 +511,7 @@ func (msm *MantaStakingMiddleware) RegisterSymbioticOperator() (*types.Receipt, 
 
 func (msm *MantaStakingMiddleware) registerOperator(ctx context.Context) (*types.Transaction, error) {
 	balance, err := msm.Cfg.EthClient.BalanceAt(
-		msm.Ctx, msm.WalletAddr, nil,
+		ctx, msm.WalletAddr, nil,
 	)
 	if err != nil {
 		return nil, err
@@ -507,7 +519,7 @@ func (msm *MantaStakingMiddleware) registerOperator(ctx context.Context) (*types
 	msm.log.Info("manta wallet address balance", zap.String("balance", balance.String()))
 
 	nonce64, err := msm.Cfg.EthClient.NonceAt(
-		msm.Ctx, msm.WalletAddr, nil,
+		ctx, msm.WalletAddr, nil,
 	)
 	if err != nil {
 		return nil, err
@@ -545,7 +557,8 @@ func (msm *MantaStakingMiddleware) registerOperator(ctx context.Context) (*types
 }
 
 func (msm *MantaStakingMiddleware) RegisterOperator() (*types.Receipt, error) {
-	tx, err := msm.registerOperator(msm.Ctx)
+	ctx := context.Background()
+	tx, err := msm.registerOperator(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -553,7 +566,7 @@ func (msm *MantaStakingMiddleware) RegisterOperator() (*types.Receipt, error) {
 		return msm.UpdateMantaStakingGasPrice(ctx, tx)
 	}
 	receipt, err := msm.txMgr.Send(
-		msm.Ctx, updateGasPrice, msm.SendTransaction,
+		ctx, updateGasPrice, msm.SendTransaction,
 	)
 	if err != nil {
 		return nil, err
@@ -582,4 +595,12 @@ func (msm *MantaStakingMiddleware) checkOperatorIsPaused() error {
 	}
 
 	return nil
+}
+
+func Keccak256Hash(data []byte) [32]byte {
+	hash := sha3.NewLegacyKeccak256()
+	hash.Write(data)
+	var result [32]byte
+	hash.Sum(result[:0])
+	return result
 }

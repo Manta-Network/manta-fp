@@ -118,7 +118,7 @@ func (f *BlockTraversal) checkHeaderListByHash(dbLatestBlock *big.Int, headerLis
 	}
 
 	for i := 1; i < len(headerList); i++ {
-		if headerList[i].ParentHash != headerList[i-1].Hash() && headerList[i].Number != nil {
+		if headerList[i].Number.Uint64()-1 != headerList[i-1].Number.Uint64() && headerList[i].Number != nil {
 			return fmt.Errorf("check header list by hash: block parent hash not equal parent block hash")
 		}
 	}
