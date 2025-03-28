@@ -159,14 +159,6 @@ func (msm *MantaStakingMiddleware) Start() error {
 		From:        msm.WalletAddr,
 	}
 
-	isExist, err := msm.MantaStakingMiddlewareContract.OperatorNameExists(cOpts, Keccak256Hash([]byte(msm.Cfg.OperatorName)))
-	if err != nil {
-		return fmt.Errorf("failed to get operator operator name isExists: %v, err: %v", latestBlock, err)
-	}
-	if isExist {
-		return fmt.Errorf("operator name %s is exist, please choose a new name", msm.Cfg.OperatorName)
-	}
-
 	operator, err := msm.MantaStakingMiddlewareContract.Operators(cOpts, msm.WalletAddr)
 	if err != nil {
 		return fmt.Errorf("failed to get operator info at block: %v, err: %v", latestBlock, err)
@@ -174,16 +166,31 @@ func (msm *MantaStakingMiddleware) Start() error {
 
 	if operator.OperatorName == "" {
 		msm.log.Info(fmt.Sprintf("address %s is not operator, start register", msm.WalletAddr.String()))
-		receipt1, err := msm.RegisterSymbioticOperator()
+
+		isExist, err := msm.MantaStakingMiddlewareContract.OperatorNameExists(cOpts, Keccak256Hash([]byte(msm.Cfg.OperatorName)))
 		if err != nil {
-			return fmt.Errorf("failed to register symbiotic operator %w", err)
+			return fmt.Errorf("failed to get operator operator name isExists: %v, err: %v", latestBlock, err)
 		}
-		msm.log.Info("success to register symbiotic operator", zap.String("tx_hash", receipt1.TxHash.String()))
-		receipt2, err := msm.RegisterOperator()
+		if isExist {
+			return fmt.Errorf("operator name %s is exist, please choose a new name", msm.Cfg.OperatorName)
+		}
+
+		isEntity, err := msm.SymbioticOperatorRegisterContract.IsEntity(cOpts, msm.WalletAddr)
+		if err != nil {
+			return fmt.Errorf("failed to get symbiotic operator info, err:%w", err)
+		}
+		if !isEntity {
+			receipt, err := msm.RegisterSymbioticOperator()
+			if err != nil {
+				return fmt.Errorf("failed to register symbiotic operator %w", err)
+			}
+			msm.log.Info("success to register symbiotic operator", zap.String("tx_hash", receipt.TxHash.String()))
+		}
+		receipt, err := msm.RegisterOperator()
 		if err != nil {
 			return fmt.Errorf("failed to register manta staking operator %w", err)
 		}
-		msm.log.Info("success to register manta staking operator", zap.String("tx_hash", receipt2.TxHash.String()))
+		msm.log.Info("success to register manta staking operator", zap.String("tx_hash", receipt.TxHash.String()))
 	} else {
 		if operator.Paused {
 			msm.log.Error("operator is paused", zap.String("address", msm.WalletAddr.String()))

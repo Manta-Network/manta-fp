@@ -174,13 +174,18 @@ func (c *clnt) BlockHeadersByRange(startHeight, endHeight *big.Int, chainId uint
 	}
 	size := 0
 	for i, batchElem := range batchElems {
-		header, ok := batchElem.Result.(*types.Header)
-		if !ok {
-			return nil, fmt.Errorf("unable to transform rpc response %v into utils.Header", batchElem.Result)
+		if batchElem.Error != nil {
+			if size == 0 {
+				return nil, batchElem.Error
+			} else {
+				break
+			}
+		} else if batchElem.Result == nil {
+			break
 		}
-
-		headers[i] = *header
-
+		if i > 0 && headers[i].ParentHash.Hex() != headers[i-1].Hash().Hex() {
+			return nil, fmt.Errorf("queried header %s does not follow parent %s", headers[i].Hash(), headers[i-1].Hash())
+		}
 		size = size + 1
 	}
 	headers = headers[:size]

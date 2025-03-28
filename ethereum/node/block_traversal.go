@@ -88,41 +88,15 @@ func (f *BlockTraversal) NextHeaders(maxSize uint64) ([]types.Header, error) {
 	if len(headers) == 0 {
 		return nil, nil
 	}
-	err = f.checkHeaderListByHash(f.lastTraversedBlock, headers)
-	if err != nil {
-		f.log.Error("next headers check blockList by hash", zap.String("error", err.Error()))
-		return nil, err
-	}
 	numHeaders := len(headers)
 	if numHeaders == 0 {
 		return nil, nil
 	} else if f.lastTraversedBlock != nil && headers[0].Number.Uint64() != new(big.Int).Add(f.lastTraversedBlock, big.NewInt(1)).Uint64() {
-		f.log.Error("Err header traversal and provider mismatched state", zap.String("parentHash = ", headers[0].ParentHash.String()))
+		f.log.Error("Err header traversal and provider mismatched state", zap.Uint64("parentNumber = ", headers[0].Number.Uint64()), zap.Uint64("number = ", f.lastTraversedBlock.Uint64()))
 		return nil, ErrBlockTraversalAndProviderMismatchedState
 	}
 	f.lastTraversedBlock = headers[numHeaders-1].Number
 	return headers, nil
-}
-
-func (f *BlockTraversal) checkHeaderListByHash(dbLatestBlock *big.Int, headerList []types.Header) error {
-	if len(headerList) == 0 {
-		return nil
-	}
-	if len(headerList) == 1 {
-		return nil
-	}
-
-	if dbLatestBlock != nil && headerList[0].Number.Uint64() != new(big.Int).Add(dbLatestBlock, big.NewInt(1)).Uint64() {
-		f.log.Error("check header list by hash", zap.String("parentHash = ", headerList[0].ParentHash.String()))
-		return ErrBlockTraversalCheckBlockFail
-	}
-
-	for i := 1; i < len(headerList); i++ {
-		if headerList[i].Number.Uint64()-1 != headerList[i-1].Number.Uint64() && headerList[i].Number != nil {
-			return fmt.Errorf("check header list by hash: block parent hash not equal parent block hash")
-		}
-	}
-	return nil
 }
 
 func (f *BlockTraversal) ChangeLastTraversedHeaderByDelAfter(dbLatestBlock *big.Int) {
