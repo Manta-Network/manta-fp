@@ -43,3 +43,4 @@ jobs:
         run: |
           git commit -am "[From Github Action] Update manta-fp image tag to ${IMAGE_TAG}" || echo "No changes to commit"
           git push origin main
+
