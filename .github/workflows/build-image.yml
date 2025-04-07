@@ -1,4 +1,4 @@
-name: build-release
+name: build-image
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   REPO_NAME: ${{ vars.REPO_NAME }}
@@ -7,8 +7,7 @@ on:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
     branches:
-      - 'feat-*'
-      - 'bugfix-*'
+      - "dev"
 
 jobs:
   determine-tag:
@@ -28,13 +27,13 @@ jobs:
 
       - name: Set timestamp
         id: set_timestamp
-        if: startsWith(github.ref, 'refs/heads/feat-') || startsWith(github.ref, 'refs/heads/bugfix-')
+        if: github.ref == 'refs/heads/dev'
         run: |
           TZ='Asia/Shanghai' date +"timestamp=%Y%m%d-%H%M%S" >> $GITHUB_ENV
 
       - name: Set tag for branches
         id: set_branch_tag
-        if: startsWith(github.ref, 'refs/heads/feat-') || startsWith(github.ref, 'refs/heads/bugfix-')
+        if: github.ref == 'refs/heads/dev'
         run: echo "tag=${GITHUB_REF_NAME}-${{ env.timestamp }}-${{ steps.get_short_sha.outputs.sha_short }}" >> $GITHUB_ENV
 
       - name: Set tag for tags
