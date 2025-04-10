@@ -22,6 +22,7 @@ import (
 	wasmdparams "github.com/CosmWasm/wasmd/app/params"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	bbnapp "github.com/babylonlabs-io/babylon/app"
+	"github.com/babylonlabs-io/babylon/client/babylonclient"
 	bbnclient "github.com/babylonlabs-io/babylon/client/client"
 	bbntypes "github.com/babylonlabs-io/babylon/types"
 	btcctypes "github.com/babylonlabs-io/babylon/x/btccheckpoint/types"
@@ -35,8 +36,8 @@ import (
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
+	sdkquerytypes "github.com/cosmos/cosmos-sdk/types/query"
 	sttypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/cosmos/relayer/v2/relayer/provider"
 	"go.uber.org/zap"
 	protobuf "google.golang.org/protobuf/proto"
 )
@@ -131,12 +132,12 @@ func (bc *BabylonController) GetKeyAddress() sdk.AccAddress {
 	return addr
 }
 
-func (bc *BabylonController) reliablySendMsg(msg sdk.Msg, expectedErrs []*sdkErr.Error, unrecoverableErrs []*sdkErr.Error) (*provider.RelayerTxResponse, error) {
+func (bc *BabylonController) reliablySendMsg(msg sdk.Msg, expectedErrs []*sdkErr.Error, unrecoverableErrs []*sdkErr.Error) (*babylonclient.RelayerTxResponse, error) {
 	return bc.reliablySendMsgs([]sdk.Msg{msg}, expectedErrs, unrecoverableErrs)
 }
 
-func (bc *BabylonController) reliablySendMsgs(msgs []sdk.Msg, expectedErrs []*sdkErr.Error, unrecoverableErrs []*sdkErr.Error) (*provider.RelayerTxResponse, error) {
-	return bc.CwClient.ReliablySendMsgs(
+func (bc *BabylonController) reliablySendMsgs(msgs []sdk.Msg, expectedErrs []*sdkErr.Error, unrecoverableErrs []*sdkErr.Error) (*babylonclient.RelayerTxResponse, error) {
+	return bc.bbnClient.ReliablySendMsgs(
 		context.Background(),
 		msgs,
 		expectedErrs,
@@ -330,15 +331,40 @@ func (bc *BabylonController) QueryFinalityProviderSlashedOrJailed(fpPk *btcec.Pu
 
 // QueryFinalityProviderVotingPower queries the voting power of the finality provider at a given height
 func (bc *BabylonController) QueryFinalityProviderVotingPower(fpPk *btcec.PublicKey, blockHeight uint64) (bool, error) {
+	pubRand, err := bc.QueryLastPublicRandCommit(fpPk)
+	if err != nil {
+		return false, err
+	}
+	if pubRand != nil {
+		// fp has 0 voting power if there is no public randomness at this height
+		lastCommittedPubRandHeight := pubRand.EndHeight()
+		bc.logger.Debug(
+			"FP last committed public randomness",
+			zap.Uint64("height", lastCommittedPubRandHeight),
+		)
+		// TODO: Handle the case where public randomness is not consecutive.
+		// For example, if the FP is down for a while and misses some public randomness commits:
+		// Assume blocks 1-100 and 200-300 have public randomness, and lastCommittedPubRandHeight is 300.
+		// For blockHeight 101 to 199, even though blockHeight < lastCommittedPubRandHeight,
+		// the finality provider should have 0 voting power.
+		if blockHeight > lastCommittedPubRandHeight {
+			bc.logger.Debug(
+				"FP has 0 voting power because there is no public randomness at this height",
+				zap.Uint64("height", blockHeight),
+			)
+
+			return false, nil
+		}
+	}
+
 	fpBtcPkHex := bbntypes.NewBIP340PubKeyFromBTCPK(fpPk).MarshalHex()
 	var nextKey []byte
-
 	btcStakingParams, err := bc.bbnClient.QueryClient.BTCStakingParams()
 	if err != nil {
 		return false, err
 	}
 	for {
-		resp, err := bc.bbnClient.QueryClient.FinalityProviderDelegations(fpBtcPkHex, &sdkquery.PageRequest{Key: nextKey, Limit: 100})
+		resp, err := bc.bbnClient.QueryClient.FinalityProviderDelegations(fpBtcPkHex, &sdkquerytypes.PageRequest{Key: nextKey, Limit: 100})
 		if err != nil {
 			return false, err
 		}
@@ -360,9 +386,75 @@ func (bc *BabylonController) QueryFinalityProviderVotingPower(fpPk *btcec.Public
 		}
 		nextKey = resp.Pagination.NextKey
 	}
+	bc.logger.Debug(
+		"FP has 0 voting power because there is no BTC delegation",
+		zap.String("fp_btc_pk", fpBtcPkHex),
+		zap.Uint64("height", blockHeight),
+	)
 
 	return false, nil
 
+}
+
+// QueryLastPublicRandCommit returns the last public randomness commitments
+// It is fetched from the state of a CosmWasm contract OP finality gadget.
+func (bc *BabylonController) QueryLastPublicRandCommit(fpPk *btcec.PublicKey) (*types.PubRandCommit, error) {
+	fpPubKey := bbntypes.NewBIP340PubKeyFromBTCPK(fpPk)
+	queryMsg := &QueryMsg{
+		LastPubRandCommit: &PubRandCommit{
+			BtcPkHex: fpPubKey.MarshalHex(),
+		},
+	}
+
+	jsonData, err := json.Marshal(queryMsg)
+	if err != nil {
+		return nil, fmt.Errorf("failed marshaling to JSON: %w", err)
+	}
+
+	stateResp, err := bc.CwClient.QuerySmartContractState(context.Background(), bc.OPFinalityGadgetAddress, string(jsonData))
+	if err != nil {
+		return nil, fmt.Errorf("failed to query smart contract state: %w", err)
+	}
+	if len(stateResp.Data) == 0 {
+		return nil, nil
+	}
+
+	var resp *types.PubRandCommit
+	err = json.Unmarshal(stateResp.Data, &resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+	if resp == nil {
+		return nil, nil
+	}
+
+	if err := resp.Validate(); err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+// FinalityProviderPowerAtHeight queries the BTCStaking module for the power of a finality provider at a given height
+func (bc *BabylonController) FinalityProviderPowerAtHeight(fpPk *btcec.PublicKey,
+	blockHeight uint64) (bool, error) {
+	res, err := bc.bbnClient.QueryClient.FinalityProviderPowerAtHeight(
+		bbntypes.NewBIP340PubKeyFromBTCPK(fpPk).MarshalHex(),
+		blockHeight,
+	)
+	if err != nil {
+		// voting power table not updated indicates that no fp has voting power
+		// therefore, it should be treated as the fp having 0 voting power
+		if strings.Contains(err.Error(), finalitytypes.ErrVotingPowerTableNotUpdated.Error()) {
+			bc.logger.Info("the voting power table not updated yet")
+
+			return false, nil
+		}
+
+		return false, fmt.Errorf("failed to query the finality provider's voting power at height %d: %w", blockHeight, err)
+	}
+
+	return res.VotingPower > 0, nil
 }
 
 func (bc *BabylonController) isDelegationActive(
@@ -410,7 +502,7 @@ func (bc *BabylonController) QueryLastCommittedPublicRand(fpPk *btcec.PublicKey)
 		return nil, fmt.Errorf("failed marshaling to JSON: %w", err)
 	}
 
-	stateResp, err := bc.CwClient.QuerySmartContractState(bc.OPFinalityGadgetAddress, string(jsonData))
+	stateResp, err := bc.CwClient.QuerySmartContractState(context.Background(), bc.OPFinalityGadgetAddress, string(jsonData))
 	if err != nil {
 		return nil, fmt.Errorf("failed to query smart contract state: %w", err)
 	}
@@ -508,7 +600,7 @@ func (bc *BabylonController) QueryBestBlock() (*types.BlockInfo, error) {
 	return &types.BlockInfo{Height: l2Block}, nil
 }
 
-func (bc *BabylonController) queryCometBestBlock() (*types.BlockInfo, error) {
+func (bc *BabylonController) QueryCometBestBlock() (*types.BlockInfo, error) {
 	ctx, cancel := getContextWithCancel(bc.cfg.Timeout)
 	// this will return 20 items at max in the descending order (highest first)
 	chainInfo, err := bc.bbnClient.RPCClient.BlockchainInfo(ctx, 0, 0)
@@ -585,7 +677,7 @@ func (bc *BabylonController) CreateBTCDelegation(
 	return &types.TxResponse{TxHash: res.TxHash}, nil
 }
 
-func (bc *BabylonController) InsertBtcBlockHeaders(headers []bbntypes.BTCHeaderBytes) (*provider.RelayerTxResponse, error) {
+func (bc *BabylonController) InsertBtcBlockHeaders(headers []bbntypes.BTCHeaderBytes) (*babylonclient.RelayerTxResponse, error) {
 	msg := &btclctypes.MsgInsertHeaders{
 		Signer:  bc.mustGetTxSigner(),
 		Headers: headers,
@@ -766,7 +858,7 @@ func (bc *BabylonController) QueryStakingParams() (*types.StakingParams, error) 
 		SlashingPkScript:          stakingParamRes.Params.SlashingPkScript,
 		CovenantQuorum:            stakingParamRes.Params.CovenantQuorum,
 		SlashingRate:              stakingParamRes.Params.SlashingRate,
-		UnbondingTime:             stakingParamRes.Params.MinUnbondingTimeBlocks,
+		UnbondingTime:             stakingParamRes.Params.UnbondingTimeBlocks,
 	}, nil
 }
 
@@ -800,7 +892,7 @@ func (bc *BabylonController) GetBBNClient() *bbnclient.Client {
 	return bc.bbnClient
 }
 
-func (bc *BabylonController) InsertSpvProofs(submitter string, proofs []*btcctypes.BTCSpvProof) (*provider.RelayerTxResponse, error) {
+func (bc *BabylonController) InsertSpvProofs(submitter string, proofs []*btcctypes.BTCSpvProof) (*babylonclient.RelayerTxResponse, error) {
 	msg := &btcctypes.MsgInsertBTCSpvProof{
 		Submitter: submitter,
 		Proofs:    proofs,

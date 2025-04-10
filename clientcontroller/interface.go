@@ -49,6 +49,10 @@ type ClientController interface {
 		The following methods are queries to the consumer chain
 	*/
 
+	FinalityProviderPowerAtHeight(fpPk *btcec.PublicKey, blockHeight uint64) (bool, error)
+
+	QueryLastPublicRandCommit(fpPk *btcec.PublicKey) (*types.PubRandCommit, error)
+
 	// QueryFinalityProviderVotingPower queries the voting power of the finality provider at a given height
 	QueryFinalityProviderVotingPower(fpPk *btcec.PublicKey, blockHeight uint64) (bool, error)
 
@@ -73,6 +77,8 @@ type ClientController interface {
 	// QueryActivatedHeight returns the activated height of the consumer chain
 	// error will be returned if the consumer chain has not been activated
 	QueryActivatedHeight() (uint64, error)
+
+	QueryCometBestBlock() (*types.BlockInfo, error)
 
 	Close() error
 }

@@ -216,6 +216,19 @@ func (fp *FinalityProviderInstance) finalitySigSubmissionLoop() {
 			if len(pollerBlocks) == 0 {
 				continue
 			}
+
+			// check whether the finality provider has voting power
+			hasVp, err := fp.hasVotingPower(pollerBlocks[0])
+			if err != nil {
+				continue
+			}
+			if !hasVp {
+				// the finality provider does not have voting power
+				// and it will never will at this block
+				fp.metrics.IncrementFpTotalBlocksWithoutVotingPower(fp.GetBtcPkHex())
+				continue
+			}
+
 			targetHeight := pollerBlocks[len(pollerBlocks)-1].Height
 			fp.logger.Debug("the bbn-fp received new block(s), start processing",
 				zap.String("pk", fp.GetBtcPkHex()),
@@ -308,18 +321,6 @@ func (fp *FinalityProviderInstance) shouldProcessBlock(b *types.BlockInfo) (bool
 			zap.Uint64("block_height", b.Height),
 			zap.Uint64("last_voted_height", fp.GetLastVotedHeight()),
 		)
-		return false, nil
-	}
-
-	// check whether the finality provider has voting power
-	hasVp, err := fp.hasVotingPower(b)
-	if err != nil {
-		return false, err
-	}
-	if !hasVp {
-		// the finality provider does not have voting power
-		// and it will never will at this block
-		fp.metrics.IncrementFpTotalBlocksWithoutVotingPower(fp.GetBtcPkHex())
 		return false, nil
 	}
 
@@ -955,7 +956,7 @@ func (fp *FinalityProviderInstance) getLatestBlockWithRetry() (*types.BlockInfo,
 	)
 
 	if err := retry.Do(func() error {
-		latestBlock, err = fp.cc.QueryBestBlock()
+		latestBlock, err = fp.cc.QueryCometBestBlock()
 		if err != nil {
 			return err
 		}
