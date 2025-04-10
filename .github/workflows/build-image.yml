@@ -1,4 +1,4 @@
-name: build-release
+name: build-image
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   REPO_NAME: ${{ vars.REPO_NAME }}
@@ -7,8 +7,7 @@ on:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
     branches:
-      - 'feat-*'
-      - 'bugfix-*'
+      - "dev"
 
 jobs:
   determine-tag:
@@ -28,13 +27,13 @@ jobs:
 
       - name: Set timestamp
         id: set_timestamp
-        if: startsWith(github.ref, 'refs/heads/feat-') || startsWith(github.ref, 'refs/heads/bugfix-')
+        if: github.ref == 'refs/heads/dev'
         run: |
           TZ='Asia/Shanghai' date +"timestamp=%Y%m%d-%H%M%S" >> $GITHUB_ENV
 
       - name: Set tag for branches
         id: set_branch_tag
-        if: startsWith(github.ref, 'refs/heads/feat-') || startsWith(github.ref, 'refs/heads/bugfix-')
+        if: github.ref == 'refs/heads/dev'
         run: echo "tag=${GITHUB_REF_NAME}-${{ env.timestamp }}-${{ steps.get_short_sha.outputs.sha_short }}" >> $GITHUB_ENV
 
       - name: Set tag for tags
@@ -86,3 +85,13 @@ jobs:
             SHA=${{ needs.determine-tag.outputs.short_sha }}
           tags: |
             ${{ env.REPO_NAME }}:${{ needs.determine-tag.outputs.tag }}
+
+      - name: Save image tag to file
+        run: echo "${{ needs.determine-tag.outputs.tag }}" > image-tag.txt
+
+      - name: Upload image tag as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-tag
+          path: image-tag.txt
+

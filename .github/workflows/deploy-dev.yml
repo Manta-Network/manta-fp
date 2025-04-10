@@ -1,0 +1,46 @@
+name: Deploy Dev
+
+on:
+  workflow_run:
+    workflows: ["build-image"]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  update-argocd:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'dev'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout ArgoCD repo
+        uses: actions/checkout@v4
+        with:
+          repository: Manta-Network/manta-apps
+          token: ${{ secrets.MANTA_GITHUB_TOKEN }}
+
+      - name: Download image tag artifact from previous workflow
+        run: |
+          RUN_ID=${{ github.event.workflow_run.id }}
+          gh run download $RUN_ID --repo Manta-Network/manta-fp --name image-tag
+          cat image-tag.txt
+        env:
+          GH_TOKEN: ${{ secrets.MANTA_GITHUB_TOKEN }}
+
+      - name: Extract new image tag
+        run: echo "IMAGE_TAG=$(cat image-tag.txt)" >> $GITHUB_ENV
+
+      - name: Update ArgoCD manifests
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git pull --rebase origin main
+          sed -i "s|tag: \".*\"|tag: \"${IMAGE_TAG}\"|" dev/manta-ap-dev/manta-fp-testnet-dev/manta-fp-bfpd/values.yaml
+          sed -i "s|tag: \".*\"|tag: \"${IMAGE_TAG}\"|" dev/manta-ap-dev/manta-fp-testnet-dev/manta-fp-eotsd/values.yaml
+          sed -i "s|tag: \".*\"|tag: \"${IMAGE_TAG}\"|" dev/manta-ap-dev/manta-fp-testnet-dev/manta-fp-sfpd/values.yaml
+
+      - name: Commit and push changes
+        run: |
+          git commit -am "[From Github Action] Update manta-fp image tag to ${IMAGE_TAG}" || echo "No changes to commit"
+          git push origin main
+
