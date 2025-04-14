@@ -148,7 +148,6 @@ func (msm *MantaStakingMiddleware) Start() error {
 	if msm.isStarted.Swap(true) {
 		return fmt.Errorf("the symbiotic-fp %s is already started", msm.WalletAddr.String())
 	}
-	//todo check the contract function is right
 	latestBlock, err := msm.Cfg.EthClient.BlockNumber(msm.Ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get latest block, err: %v", err)

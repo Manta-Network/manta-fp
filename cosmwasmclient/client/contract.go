@@ -9,11 +9,12 @@ import (
 	"strings"
 
 	wasmdtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
 )
 
-func (cwClient *Client) StoreWasmCode(wasmFile string) error {
-	wasmCode, err := os.ReadFile(wasmFile)
+func (c *Client) StoreWasmCode(ctx context.Context, wasmFile string) error {
+	wasmCode, err := os.ReadFile(wasmFile) // #nosec G304
 	if err != nil {
 		return err
 	}
@@ -32,10 +33,10 @@ func (cwClient *Client) StoreWasmCode(wasmFile string) error {
 	}
 
 	storeMsg := &wasmdtypes.MsgStoreCode{
-		Sender:       cwClient.MustGetAddr(),
+		Sender:       c.MustGetAddr(),
 		WASMByteCode: wasmCode,
 	}
-	_, err = cwClient.ReliablySendMsg(context.Background(), storeMsg, nil, nil)
+	_, err = c.ReliablySendMsg(ctx, storeMsg, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -43,17 +44,33 @@ func (cwClient *Client) StoreWasmCode(wasmFile string) error {
 	return nil
 }
 
-func (cwClient *Client) InstantiateContract(codeID uint64, initMsg []byte) error {
+func (c *Client) InstantiateContract(ctx context.Context, codeID uint64, initMsg []byte) error {
 	instantiateMsg := &wasmdtypes.MsgInstantiateContract{
-		Sender: cwClient.MustGetAddr(),
-		Admin:  cwClient.MustGetAddr(),
+		Sender: c.MustGetAddr(),
+		Admin:  c.MustGetAddr(),
 		CodeID: codeID,
 		Label:  "cw",
 		Msg:    initMsg,
 		Funds:  nil,
 	}
 
-	_, err := cwClient.ReliablySendMsg(context.Background(), instantiateMsg, nil, nil)
+	_, err := c.ReliablySendMsg(ctx, instantiateMsg, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Client) ExecuteContract(ctx context.Context, contractAddr string, execMsg []byte, funds []sdk.Coin) error {
+	executeMsg := &wasmdtypes.MsgExecuteContract{
+		Sender:   c.MustGetAddr(),
+		Contract: contractAddr,
+		Msg:      execMsg,
+		Funds:    funds,
+	}
+
+	_, err := c.ReliablySendMsg(ctx, executeMsg, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -62,12 +79,12 @@ func (cwClient *Client) InstantiateContract(codeID uint64, initMsg []byte) error
 }
 
 // returns the latest wasm code id.
-func (cwClient *Client) GetLatestCodeId() (uint64, error) {
+func (c *Client) GetLatestCodeID(ctx context.Context) (uint64, error) {
 	pagination := &sdkquery.PageRequest{
 		Limit:   1,
 		Reverse: true,
 	}
-	resp, err := cwClient.ListCodes(pagination)
+	resp, err := c.ListCodes(ctx, pagination)
 	if err != nil {
 		return 0, err
 	}
