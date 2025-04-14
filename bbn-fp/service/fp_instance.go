@@ -314,7 +314,7 @@ func (fp *FinalityProviderInstance) getRandomnessCommitmentBlocksFromChan() []*t
 }
 
 func (fp *FinalityProviderInstance) shouldProcessBlock(b *types.BlockInfo) (bool, error) {
-	if b.L2BlockNumber.Uint64() <= fp.GetLastVotedHeight() {
+	if b.Height <= fp.GetLastVotedHeight() {
 		fp.logger.Debug(
 			"the block height is lower than last processed height",
 			zap.String("pk", fp.GetBtcPkHex()),
