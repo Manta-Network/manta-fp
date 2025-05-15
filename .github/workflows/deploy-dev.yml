@@ -35,12 +35,15 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
           git pull --rebase origin main
-          sed -i "s|tag: \".*\"|tag: \"${IMAGE_TAG}\"|" dev/manta-ap-dev/manta-fp-testnet-dev/manta-fp-bfpd/values.yaml
-          sed -i "s|tag: \".*\"|tag: \"${IMAGE_TAG}\"|" dev/manta-ap-dev/manta-fp-testnet-dev/manta-fp-eotsd/values.yaml
-          sed -i "s|tag: \".*\"|tag: \"${IMAGE_TAG}\"|" dev/manta-ap-dev/manta-fp-testnet-dev/manta-fp-sfpd/values.yaml
+
+          BASE_DIR="dev/manta-ap-dev/manta-fp-testnet-dev"
+
+          find "$BASE_DIR" -type f -name values.yaml | grep -E '/manta-fp-(bfpd|sfpd|eotsd)(-[0-9]+)?/values.yaml$' | while read -r file; do
+            echo "Updating tag in: $file"
+            sed -i "s|tag: \".*\"|tag: \"${IMAGE_TAG}\"|" "$file"
+          done
 
       - name: Commit and push changes
         run: |
           git commit -am "[From Github Action] Update manta-fp image tag to ${IMAGE_TAG}" || echo "No changes to commit"
           git push origin main
-

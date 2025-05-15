@@ -94,4 +94,3 @@ jobs:
         with:
           name: image-tag
           path: image-tag.txt
-
