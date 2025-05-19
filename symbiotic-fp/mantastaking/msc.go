@@ -238,6 +238,7 @@ func (msm *MantaStakingMiddleware) finalitySigSubmissionLoop() {
 					zap.String("address", msm.WalletAddr.String()),
 					zap.String("error", err.Error()),
 				)
+				continue
 			}
 
 			pollerBlocks := msm.getAllBlocksFromChan()
@@ -328,17 +329,20 @@ func (msm *MantaStakingMiddleware) SubmitBatchFinalitySignatures(ctx context.Con
 		return fmt.Errorf("should not submit batch finality signature with too many blocks")
 	}
 
-	stateRoot := blocks[len(blocks)-1].StateRoot.StateRoot
-	signature, err := crypto.Sign(stateRoot[:], msm.PrivateKey)
+	stateRoot := blocks[len(blocks)-1].StateRoot
+	signature, err := crypto.Sign(stateRoot.StateRoot[:], msm.PrivateKey)
 	if err != nil {
 		msm.log.Error("failed to sign data", zap.String("err", err.Error()))
 		return err
 	}
 
 	signRequest := types2.SignRequest{
-		StateRoot:   hex.EncodeToString(stateRoot[:]),
-		Signature:   signature,
-		SignAddress: msm.WalletAddr.String(),
+		StateRoot:     hex.EncodeToString(stateRoot.StateRoot[:]),
+		L1BlockNumber: stateRoot.L1BlockNumber,
+		L1BlockHash:   stateRoot.L1BlockHash.String(),
+		L2BlockNumber: stateRoot.L2BlockNumber.Uint64(),
+		Signature:     signature,
+		SignAddress:   msm.WalletAddr.String(),
 	}
 
 	data, err := json.Marshal(signRequest)
@@ -596,8 +600,8 @@ func (msm *MantaStakingMiddleware) checkOperatorIsPaused() error {
 	}
 
 	if operator.Paused {
-		msm.log.Info("the operator is paused, stopping service")
-		return msm.Stop()
+		msm.log.Error("the operator is paused")
+		return fmt.Errorf("the operator is paused at block: %v, address: %v", latestBlock, msm.WalletAddr.String())
 	}
 
 	return nil
