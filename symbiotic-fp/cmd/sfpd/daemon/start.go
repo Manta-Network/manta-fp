@@ -26,6 +26,8 @@ func CommandStart() *cobra.Command {
 	}
 	cmd.Flags().String(PrivateKeyFlag, "", "The private key of the symbiotic-fp to sign")
 	cmd.Flags().String(AuthTokenFlag, "", "The auth token of celestia node")
+	cmd.Flags().String(KMSIdFlag, "", "KMS ID the client will reference")
+	cmd.Flags().String(KMSRegionFlag, "", "AWS region the client will connect to")
 	return cmd
 }
 
@@ -42,6 +44,15 @@ func runStartCmd(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to read flag %s: %w", AuthTokenFlag, err)
 	}
+	kmsId, err := cmd.Flags().GetString(KMSIdFlag)
+	if err != nil {
+		return fmt.Errorf("failed to read flag %s: %w", kmsId, err)
+	}
+	kmsRegion, err := cmd.Flags().GetString(KMSRegionFlag)
+	if err != nil {
+		return fmt.Errorf("failed to read flag %s: %w", kmsRegion, err)
+	}
+
 	homePath, err := filepath.Abs(home)
 	if err != nil {
 		return err
@@ -71,7 +82,7 @@ func runStartCmd(cmd *cobra.Command, _ []string) error {
 
 	server := service.NewFinalityProviderServer(cfg, logger, dbBackend, shutdownInterceptor)
 
-	mSMCfg, err := mantastaking.NewMantaStakingMiddlewareConfig(cmd.Context(), cfg, logger, priKey)
+	mSMCfg, err := mantastaking.NewMantaStakingMiddlewareConfig(cmd.Context(), cfg, logger, priKey, kmsId, kmsRegion)
 	if err != nil {
 		return fmt.Errorf("failed to initialize the manta staking middleware config: %w", err)
 	}

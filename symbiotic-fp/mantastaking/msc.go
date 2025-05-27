@@ -27,6 +27,7 @@ import (
 	"github.com/Manta-Network/manta-fp/symbiotic-fp/celestia"
 	common2 "github.com/Manta-Network/manta-fp/symbiotic-fp/common"
 	"github.com/Manta-Network/manta-fp/symbiotic-fp/config"
+	kmssigner "github.com/Manta-Network/manta-fp/symbiotic-fp/kms"
 	"github.com/Manta-Network/manta-fp/symbiotic-fp/store"
 	"github.com/Manta-Network/manta-fp/symbiotic-fp/txmgr"
 	types2 "github.com/Manta-Network/manta-fp/types"
@@ -106,6 +107,11 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 	var walletAddr common.Address
 	if mCfg.EnableHsm {
 		walletAddr = common.HexToAddress(mCfg.HsmAddress)
+	} else if config.EnableKms {
+		walletAddr, err = kmssigner.GetAddress(mCfg.KmsClient, mCfg.KmsID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get the kms address: %w", err)
+		}
 	} else {
 		walletAddr = crypto.PubkeyToAddress(mCfg.PrivateKey.PublicKey)
 	}
@@ -421,23 +427,7 @@ func (msm *MantaStakingMiddleware) getAllBlocksFromChan() []*types2.BlockInfo {
 	}
 }
 
-func (msm *MantaStakingMiddleware) UpdateMantaStakingGasPrice(ctx context.Context, tx *types.Transaction) (*types.Transaction, error) {
-	var opts *bind.TransactOpts
-	var err error
-	if !msm.Cfg.EnableHsm {
-		opts, err = bind.NewKeyedTransactorWithChainID(
-			msm.Cfg.PrivateKey, msm.Cfg.ChainID,
-		)
-	} else {
-		opts, err = common2.NewHSMTransactOpts(ctx, msm.Cfg.HsmApiName,
-			msm.Cfg.HsmAddress, msm.Cfg.ChainID, msm.Cfg.HsmCreden)
-	}
-	if err != nil {
-		return nil, err
-	}
-	opts.Context = ctx
-	opts.Nonce = new(big.Int).SetUint64(tx.Nonce())
-	opts.NoSend = true
+func (msm *MantaStakingMiddleware) UpdateMantaStakingGasPrice(opts *bind.TransactOpts, tx *types.Transaction) (*types.Transaction, error) {
 	finalTx, err := msm.RawMantaStakingMiddlewareContract.RawTransact(opts, tx.Data())
 	if err != nil {
 		return nil, err
@@ -445,23 +435,7 @@ func (msm *MantaStakingMiddleware) UpdateMantaStakingGasPrice(ctx context.Contex
 	return finalTx, nil
 }
 
-func (msm *MantaStakingMiddleware) UpdateSymbioticGasPrice(ctx context.Context, tx *types.Transaction) (*types.Transaction, error) {
-	var opts *bind.TransactOpts
-	var err error
-	if !msm.Cfg.EnableHsm {
-		opts, err = bind.NewKeyedTransactorWithChainID(
-			msm.Cfg.PrivateKey, msm.Cfg.ChainID,
-		)
-	} else {
-		opts, err = common2.NewHSMTransactOpts(ctx, msm.Cfg.HsmApiName,
-			msm.Cfg.HsmAddress, msm.Cfg.ChainID, msm.Cfg.HsmCreden)
-	}
-	if err != nil {
-		return nil, err
-	}
-	opts.Context = ctx
-	opts.Nonce = new(big.Int).SetUint64(tx.Nonce())
-	opts.NoSend = true
+func (msm *MantaStakingMiddleware) UpdateSymbioticGasPrice(opts *bind.TransactOpts, tx *types.Transaction) (*types.Transaction, error) {
 	finalTx, err := msm.RawSymbioticOperatorRegisterContract.RawTransact(opts, tx.Data())
 	if err != nil {
 		return nil, err
@@ -479,12 +453,12 @@ func (msm *MantaStakingMiddleware) IsMaxPriorityFeePerGasNotFoundError(err error
 	)
 }
 
-func (msm *MantaStakingMiddleware) registerSymbioticOperator(ctx context.Context) (*types.Transaction, error) {
+func (msm *MantaStakingMiddleware) registerSymbioticOperator(ctx context.Context) (*types.Transaction, *bind.TransactOpts, error) {
 	balance, err := msm.Cfg.EthClient.BalanceAt(
 		ctx, msm.WalletAddr, nil,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	msm.log.Info("manta wallet address balance", zap.String("balance", balance.String()))
 
@@ -492,39 +466,42 @@ func (msm *MantaStakingMiddleware) registerSymbioticOperator(ctx context.Context
 		ctx, msm.WalletAddr, nil,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	nonce := new(big.Int).SetUint64(nonce64)
 	var opts *bind.TransactOpts
-	if !msm.Cfg.EnableHsm {
+	if msm.Cfg.EnableHsm {
+		opts, err = common2.NewHSMTransactOpts(ctx, msm.Cfg.HsmApiName,
+			msm.Cfg.HsmAddress, msm.Cfg.ChainID, msm.Cfg.HsmCreden)
+	} else if msm.Cfg.EnableKms {
+		opts, err = kmssigner.NewAwsKmsTransactorWithChainIDCtx(ctx, msm.Cfg.KmsClient,
+			msm.Cfg.KmsID, msm.Cfg.ChainID)
+	} else {
 		opts, err = bind.NewKeyedTransactorWithChainID(
 			msm.Cfg.PrivateKey, msm.Cfg.ChainID,
 		)
-	} else {
-		opts, err = common2.NewHSMTransactOpts(ctx, msm.Cfg.HsmApiName,
-			msm.Cfg.HsmAddress, msm.Cfg.ChainID, msm.Cfg.HsmCreden)
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	opts.Context = ctx
 	opts.Nonce = nonce
 	opts.NoSend = true
 	tx, err := msm.SymbioticOperatorRegisterContract.RegisterOperator(opts)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return tx, nil
+	return tx, opts, nil
 }
 
 func (msm *MantaStakingMiddleware) RegisterSymbioticOperator() (*types.Receipt, error) {
 	ctx := context.Background()
-	tx, err := msm.registerSymbioticOperator(ctx)
+	tx, opts, err := msm.registerSymbioticOperator(ctx)
 	if err != nil {
 		return nil, err
 	}
 	updateGasPrice := func(ctx context.Context) (*types.Transaction, error) {
-		return msm.UpdateSymbioticGasPrice(ctx, tx)
+		return msm.UpdateSymbioticGasPrice(opts, tx)
 	}
 	receipt, err := msm.txMgr.Send(
 		ctx, updateGasPrice, msm.SendTransaction,
@@ -535,12 +512,12 @@ func (msm *MantaStakingMiddleware) RegisterSymbioticOperator() (*types.Receipt, 
 	return receipt, nil
 }
 
-func (msm *MantaStakingMiddleware) registerOperator(ctx context.Context) (*types.Transaction, error) {
+func (msm *MantaStakingMiddleware) registerOperator(ctx context.Context) (*types.Transaction, *bind.TransactOpts, error) {
 	balance, err := msm.Cfg.EthClient.BalanceAt(
 		ctx, msm.WalletAddr, nil,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	msm.log.Info("manta wallet address balance", zap.String("balance", balance.String()))
 
@@ -548,20 +525,23 @@ func (msm *MantaStakingMiddleware) registerOperator(ctx context.Context) (*types
 		ctx, msm.WalletAddr, nil,
 	)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	nonce := new(big.Int).SetUint64(nonce64)
 	var opts *bind.TransactOpts
-	if !msm.Cfg.EnableHsm {
+	if msm.Cfg.EnableHsm {
+		opts, err = common2.NewHSMTransactOpts(ctx, msm.Cfg.HsmApiName,
+			msm.Cfg.HsmAddress, msm.Cfg.ChainID, msm.Cfg.HsmCreden)
+	} else if msm.Cfg.EnableKms {
+		opts, err = kmssigner.NewAwsKmsTransactorWithChainIDCtx(ctx, msm.Cfg.KmsClient,
+			msm.Cfg.KmsID, msm.Cfg.ChainID)
+	} else {
 		opts, err = bind.NewKeyedTransactorWithChainID(
 			msm.Cfg.PrivateKey, msm.Cfg.ChainID,
 		)
-	} else {
-		opts, err = common2.NewHSMTransactOpts(ctx, msm.Cfg.HsmApiName,
-			msm.Cfg.HsmAddress, msm.Cfg.ChainID, msm.Cfg.HsmCreden)
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	opts.Context = ctx
 	opts.Nonce = nonce
@@ -577,19 +557,19 @@ func (msm *MantaStakingMiddleware) registerOperator(ctx context.Context) (*types
 
 	tx, err := msm.MantaStakingMiddlewareContract.RegisterOperator(opts, publicKeyBytes, msm.Cfg.OperatorName, common.HexToAddress(msm.Cfg.RewardAddress), big.NewInt(msm.Cfg.Commission))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return tx, nil
+	return tx, opts, nil
 }
 
 func (msm *MantaStakingMiddleware) RegisterOperator() (*types.Receipt, error) {
 	ctx := context.Background()
-	tx, err := msm.registerOperator(ctx)
+	tx, opts, err := msm.registerOperator(ctx)
 	if err != nil {
 		return nil, err
 	}
 	updateGasPrice := func(ctx context.Context) (*types.Transaction, error) {
-		return msm.UpdateMantaStakingGasPrice(ctx, tx)
+		return msm.UpdateMantaStakingGasPrice(opts, tx)
 	}
 	receipt, err := msm.txMgr.Send(
 		ctx, updateGasPrice, msm.SendTransaction,
