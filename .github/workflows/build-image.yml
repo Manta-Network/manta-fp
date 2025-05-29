@@ -1,7 +1,5 @@
 name: build-image
-env:
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  REPO_NAME: ${{ vars.REPO_NAME }}
+
 on:
   push:
     tags:
@@ -28,13 +26,13 @@ jobs:
 
       - name: Set timestamp
         id: set_timestamp
-        if: github.ref == 'refs/heads/dev'
+        if: startsWith(github.ref, 'refs/heads/')
         run: |
           TZ='Asia/Shanghai' date +"timestamp=%Y%m%d-%H%M%S" >> $GITHUB_ENV
 
       - name: Set tag for branches
         id: set_branch_tag
-        if: github.ref == 'refs/heads/dev'
+        if: startsWith(github.ref, 'refs/heads/')
         run: echo "tag=${GITHUB_REF_NAME}-${{ env.timestamp }}-${{ steps.get_short_sha.outputs.sha_short }}" >> $GITHUB_ENV
 
       - name: Set tag for tags
@@ -67,7 +65,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -85,7 +83,7 @@ jobs:
             TAG=${{ needs.determine-tag.outputs.tag }}
             SHA=${{ needs.determine-tag.outputs.short_sha }}
           tags: |
-            ${{ env.REPO_NAME }}:${{ needs.determine-tag.outputs.tag }}
+            ${{ secrets.REPO_NAME }}:${{ needs.determine-tag.outputs.tag }}
 
       - name: Save image tag to file
         run: echo "${{ needs.determine-tag.outputs.tag }}" > image-tag.txt
