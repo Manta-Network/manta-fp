@@ -1,5 +1,9 @@
 name: build-image
 
+#introduce this env but won't use it, just to hide the account id in logs
+env:
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+
 on:
   push:
     tags:
