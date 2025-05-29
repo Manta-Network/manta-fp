@@ -604,7 +604,7 @@ func (msm *MantaStakingMiddleware) checkOperatorIsPaused() error {
 }
 
 func (msm *MantaStakingMiddleware) checkOperatorIsDelegateActive() (bool, error) {
-	stakeAmount, err := msm.getSymbioticOperatorStakeAmount(msm.WalletAddr.String())
+	stakeAmount, err := msm.getSymbioticOperatorStakeAmount(strings.ToLower(msm.WalletAddr.String()))
 	if err != nil {
 		msm.log.Error("failed to get operator stake amount", zap.String("address", msm.WalletAddr.String()), zap.Error(err))
 		return false, err

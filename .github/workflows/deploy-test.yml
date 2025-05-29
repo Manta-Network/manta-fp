@@ -1,4 +1,4 @@
-name: Deploy Dev
+name: Deploy Test
 
 on:
   workflow_run:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   update-argocd:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'dev'
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'test'
     runs-on: ubuntu-latest
 
     steps:
@@ -37,7 +37,7 @@ jobs:
           git config --global user.email "github-actions@github.com"
           git pull --rebase origin main
 
-          BASE_DIR="dev/manta-ap-dev/manta-fp-testnet-dev"
+          BASE_DIR="prod/manta-ap-test/manta-fp-testnet"
 
           find "$BASE_DIR" -type f -name values.yaml | grep -E '/manta-fp-(bfpd|sfpd|eotsd).*/values.yaml$' | while read -r file; do
             echo "Updating tag in: $file"
@@ -46,5 +46,5 @@ jobs:
 
       - name: Commit and push changes
         run: |
-          git commit -am "[From Github Action] Update dev manta-fp image tag to ${IMAGE_TAG}" || echo "No changes to commit"
+          git commit -am "[From Github Action] Update testnet manta-fp image tag to ${IMAGE_TAG}" || echo "No changes to commit"
           git push origin main
