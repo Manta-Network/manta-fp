@@ -43,7 +43,7 @@ type ChainPoller struct {
 
 	cc             clientcontroller.ClientController
 	cfg            *cfg.ChainPollerConfig
-	metrics        *metrics.FpMetrics
+	metrics        *metrics.BbnFpMetrics
 	blockInfoChan  chan *types.BlockInfo
 	skipHeightChan chan *skipHeightRequest
 	nextHeight     uint64
@@ -54,7 +54,7 @@ func NewChainPoller(
 	logger *zap.Logger,
 	cfg *cfg.ChainPollerConfig,
 	cc clientcontroller.ClientController,
-	metrics *metrics.FpMetrics,
+	metrics *metrics.BbnFpMetrics,
 ) *ChainPoller {
 	return &ChainPoller{
 		isStarted:      atomic.NewBool(false),

@@ -48,6 +48,8 @@ type Config struct {
 	CelestiaConfig *CelestiaConfig `group:"celestiaconfig" namespace:"celestiaconfig"`
 
 	Metrics *metrics.Config `group:"metrics" namespace:"metrics"`
+
+	Api *ApiConfig `group:"api" namespace:"api"`
 }
 
 func DefaultConfigWithHome(homePath string) Config {

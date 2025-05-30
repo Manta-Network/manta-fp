@@ -52,7 +52,7 @@ type FinalityProviderApp struct {
 	fpIns       *FinalityProviderInstance
 	eotsManager eotsmanager.EOTSManager
 
-	metrics *metrics.FpMetrics
+	metrics *metrics.BbnFpMetrics
 
 	createFinalityProviderRequestChan chan *CreateFinalityProviderRequest
 	unjailFinalityProviderRequestChan chan *UnjailFinalityProviderRequest
@@ -111,7 +111,7 @@ func NewFinalityProviderApp(
 		return nil, fmt.Errorf("failed to create keyring: %w", err)
 	}
 
-	fpMetrics := metrics.NewFpMetrics()
+	fpMetrics := metrics.NewBbnFpMetrics()
 
 	opClient, err := node.DialEthClient(context.Background(), config.OpEventConfig.EthRpc)
 	if err != nil {

@@ -51,6 +51,7 @@ type MantaStakingMiddleware struct {
 	log                                  *zap.Logger
 	ChainPoller                          *OpChainPoller
 	DAClient                             *celestia.DAClient
+	metrics                              *metrics.SymbioticFpMetrics
 
 	SignatureSubmissionInterval time.Duration
 	SubmissionRetryInterval     time.Duration
@@ -116,7 +117,7 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 		walletAddr = crypto.PubkeyToAddress(mCfg.PrivateKey.PublicKey)
 	}
 
-	fpMetrics := metrics.NewFpMetrics()
+	fpMetrics := metrics.NewSymbioticFpMetrics()
 
 	sRStore, err := store.NewOpStateRootStore(db)
 	if err != nil {
@@ -260,8 +261,11 @@ func (msm *MantaStakingMiddleware) finalitySigSubmissionLoop() {
 
 			if !isActive {
 				msm.log.Warn("the symbiotic-fp is not delegate active, skip sign")
+				msm.metrics.RecordFpStatus(msm.WalletAddr.String(), common2.InActive)
 				continue
 			}
+
+			msm.metrics.RecordFpStatus(msm.WalletAddr.String(), common2.Active)
 
 			pollerBlocks := msm.getAllBlocksFromChan()
 			if len(pollerBlocks) == 0 {
@@ -330,6 +334,7 @@ func (msm *MantaStakingMiddleware) retrySubmitSigsUntilFinalized(targetBlocks []
 				}
 			} else {
 				// the signature has been successfully submitted
+				msm.metrics.RecordFpLastProcessedHeight(msm.WalletAddr.String(), targetHeight)
 				return nil
 			}
 
@@ -398,16 +403,16 @@ func (msm *MantaStakingMiddleware) SubmitBatchFinalitySignatures(ctx context.Con
 				} else {
 					msm.log.Error("celestia: failed to get proof", zap.String("err", err.Error()))
 				}
-			} else {
-				msm.log.Info("celestia: blob submission failed; falling back to eth",
-					zap.String("err", err.Error()),
-					zap.Any("ids", ids),
-					zap.ByteString("commit", commit))
 			}
 		} else {
 			msm.log.Info("celestia: failed to create commitment", zap.String("err", err.Error()))
+			msm.metrics.IncrementFpTotalFailedVotes(msm.WalletAddr.String())
 		}
 	}
+
+	msm.metrics.RecordFpLastVotedL1Height(msm.WalletAddr.String(), stateRoot.L1BlockNumber)
+	msm.metrics.RecordFpLastVotedL2Height(msm.WalletAddr.String(), stateRoot.L2BlockNumber.Uint64())
+	msm.metrics.IncrementFpTotalVotedBlocks(msm.WalletAddr.String())
 
 	return nil
 }
@@ -597,6 +602,7 @@ func (msm *MantaStakingMiddleware) checkOperatorIsPaused() error {
 
 	if operator.Paused {
 		msm.log.Error("the operator is paused")
+		msm.metrics.RecordFpStatus(msm.WalletAddr.String(), common2.Paused)
 		return fmt.Errorf("the operator is paused at block: %v, address: %v", latestBlock, msm.WalletAddr.String())
 	}
 
