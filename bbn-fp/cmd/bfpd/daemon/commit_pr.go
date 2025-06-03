@@ -107,7 +107,7 @@ func runCommandCommitPubRand(cmd *cobra.Command, args []string) error {
 	}
 
 	fp, err := service.NewFinalityProviderInstance(
-		fpPk, cfg, fpStore, pubRandStore, cc, em, metrics.NewFpMetrics(), "",
+		fpPk, cfg, fpStore, pubRandStore, cc, em, metrics.NewBbnFpMetrics(), "",
 		make(chan<- *service.CriticalError), logger, opClient, sRStore, ep)
 	if err != nil {
 		return fmt.Errorf("failed to create bbn-fp %s instance: %w", fpPk.MarshalHex(), err)

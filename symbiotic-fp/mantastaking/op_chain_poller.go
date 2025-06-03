@@ -38,11 +38,11 @@ type OpChainPoller struct {
 	eventProvider  *opstack.EventProvider
 	blockInfoChan  chan *types.BlockInfo
 
-	metrics *metrics.FpMetrics
+	metrics *metrics.SymbioticFpMetrics
 	quit    chan struct{}
 }
 
-func NewOpChainPoller(logger *zap.Logger, cfg *cfg.OpEventConfig, sRStore *store.OpStateRootStore, metrics *metrics.FpMetrics) (*OpChainPoller, error) {
+func NewOpChainPoller(logger *zap.Logger, cfg *cfg.OpEventConfig, sRStore *store.OpStateRootStore, metrics *metrics.SymbioticFpMetrics) (*OpChainPoller, error) {
 	var contracts []common.Address
 	contracts = append(contracts, common.HexToAddress(cfg.L2OutputOracleAddr))
 
@@ -155,6 +155,7 @@ func (ocp *OpChainPoller) opPollChain() {
 					ocp.logger.Error("Add latest block fail", zap.String("err", err.Error()))
 					return
 				}
+				ocp.metrics.RecordLastPolledHeight(latestBlock.Uint64())
 			}
 			err := ocp.processBatch(ocp.headers)
 			if err == nil {
