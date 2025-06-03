@@ -148,6 +148,7 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 		DAClient:                             daClient,
 		PrivateKey:                           mCfg.PrivateKey,
 		isStarted:                            atomic.NewBool(false),
+		metrics:                              fpMetrics,
 		SignatureSubmissionInterval:          config.SignatureSubmissionInterval,
 		SubmissionRetryInterval:              config.SubmissionRetryInterval,
 	}, nil

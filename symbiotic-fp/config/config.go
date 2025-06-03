@@ -65,10 +65,12 @@ func DefaultConfigWithHome(homePath string) Config {
 		RewardAddress:               defaultEthAddr,
 		Commission:                  defaultCommission,
 		LogLevel:                    defaultLogLevel.String(),
+		EnableKms:                   false,
 		DatabaseConfig:              DefaultDBConfigWithHomePath(homePath),
 		OpEventConfig:               &opEventConfig,
 		CelestiaConfig:              &celestiaConfig,
 		Metrics:                     metrics.DefaultFpConfig(),
+		Api:                         DefaultApiConfig(),
 	}
 
 	if err := cfg.Validate(); err != nil {

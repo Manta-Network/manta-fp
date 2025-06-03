@@ -3,18 +3,16 @@ package config
 import (
 	"fmt"
 	"net"
-	"time"
 )
 
 const (
-	defaultFpApiPort = 2112
+	defaultFpApiPort = 8080
 	defaultApiHost   = "127.0.0.1"
 )
 
 type ApiConfig struct {
-	Host           string        `long:"host" description:"IP of the Prometheus server"`
-	Port           int           `long:"port" description:"Port of the Prometheus server"`
-	UpdateInterval time.Duration `long:"updateinterval" description:"The interval of Prometheus metrics updated"`
+	Host string `long:"host" description:"IP of the http server"`
+	Port int    `long:"port" description:"Port of the http server"`
 }
 
 func (cfg *ApiConfig) Validate() error {

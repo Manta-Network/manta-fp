@@ -119,7 +119,7 @@ func (fm *SymbioticFpMetrics) RecordFpLastVotedL1Height(operator string, height 
 
 // RecordFpLastVotedL2Height records the last block height voted by a finality provider
 func (fm *SymbioticFpMetrics) RecordFpLastVotedL2Height(operator string, height uint64) {
-	fm.fpLastVotedL1Height.WithLabelValues(operator).Set(float64(height))
+	fm.fpLastVotedL2Height.WithLabelValues(operator).Set(float64(height))
 }
 
 // RecordFpLastProcessedHeight records the last block height processed by a finality provider
