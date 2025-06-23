@@ -109,6 +109,8 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 	if mCfg.EnableHsm {
 		walletAddr = common.HexToAddress(mCfg.HsmAddress)
 	} else if config.EnableKms {
+		fmt.Println(mCfg.KmsRegion)
+		fmt.Println(mCfg.KmsID)
 		walletAddr, err = kmssigner.GetAddress(mCfg.KmsClient, mCfg.KmsID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get the kms address: %w", err)
