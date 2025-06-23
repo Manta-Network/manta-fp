@@ -36,11 +36,11 @@ type OpChainPoller struct {
 	eventProvider  *opstack.EventProvider
 	blockInfoChan  chan *types.BlockInfo
 	contracts      []common.Address
-	metrics        *metrics.FpMetrics
+	metrics        *metrics.BbnFpMetrics
 	quit           chan struct{}
 }
 
-func NewOpChainPoller(logger *zap.Logger, opClient node.EthClient, startHeight uint64, cfg *cfg.OpEventConfig, sRStore *store.OpStateRootStore, eventProvider *opstack.EventProvider, metrics *metrics.FpMetrics) (*OpChainPoller, error) {
+func NewOpChainPoller(logger *zap.Logger, opClient node.EthClient, startHeight uint64, cfg *cfg.OpEventConfig, sRStore *store.OpStateRootStore, eventProvider *opstack.EventProvider, metrics *metrics.BbnFpMetrics) (*OpChainPoller, error) {
 	var contracts []common.Address
 	contracts = append(contracts, common.HexToAddress(cfg.L2OutputOracleAddr))
 

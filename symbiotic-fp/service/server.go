@@ -2,12 +2,16 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"sync/atomic"
 
 	"github.com/Manta-Network/manta-fp/metrics"
 	fpcfg "github.com/Manta-Network/manta-fp/symbiotic-fp/config"
+	"github.com/Manta-Network/manta-fp/symbiotic-fp/router"
 
+	"github.com/gin-gonic/gin"
 	"github.com/lightningnetwork/lnd/kvdb"
 	"github.com/lightningnetwork/lnd/signal"
 	"go.uber.org/zap"
@@ -26,6 +30,7 @@ type Server struct {
 	interceptor signal.Interceptor
 
 	metricsServer *metrics.Server
+	httpServer    *http.Server
 
 	quit chan struct{}
 }
@@ -53,10 +58,29 @@ func (s *Server) StartFinalityProviderServer() error {
 	}
 	s.metricsServer = metrics.Start(promAddr, s.logger)
 
-	// All the necessary parts have been registered, so we can
-	// actually start listening for requests.
+	// Start the http server
+	registry := router.NewRegistry()
+	r := gin.Default()
+	registry.Register(r)
+	apiAddress, err := s.cfg.Api.Address()
+	if err != nil {
+		return fmt.Errorf("failed to get http address: %w", err)
+	}
 
-	s.logger.Info("Finality Provider Daemon is fully active!")
+	var httpServer *http.Server
+	httpServer = &http.Server{
+		Addr:    apiAddress,
+		Handler: r,
+	}
+
+	go func() {
+		if err := httpServer.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
+			s.logger.Error("api server starts failed", zap.String("err", err.Error()))
+		}
+	}()
+	s.httpServer = httpServer
+
+	s.logger.Info("success to start finality Provider server!")
 
 	return nil
 }
@@ -75,6 +99,9 @@ func (s *Server) RunUntilShutdown() error {
 			s.logger.Error(fmt.Sprintf("Failed to close database: %v", err)) // Log the error
 		} else {
 			s.logger.Info("Database closed")
+		}
+		if err := s.httpServer.Shutdown(context.Background()); err != nil {
+			s.logger.Error(fmt.Sprintf("Failed to close http server: %v", err)) // Log the error
 		}
 		s.metricsServer.Stop(context.Background())
 		s.logger.Info("Metrics server stopped")

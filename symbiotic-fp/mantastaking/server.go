@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
+	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/kms"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/Manta-Network/manta-fp/ethereum/node"
 	cfg "github.com/Manta-Network/manta-fp/symbiotic-fp/config"
+	kmssigner "github.com/Manta-Network/manta-fp/symbiotic-fp/kms"
 
 	"go.uber.org/zap"
 	"math/big"
@@ -33,22 +36,34 @@ type MantaStakingMiddlewareConfig struct {
 	HsmApiName                    string
 	HsmCreden                     string
 	HsmAddress                    string
+	EnableKms                     bool
+	KmsID                         string
+	KmsRegion                     string
+	KmsClient                     *kms.Client
 }
 
-func NewMantaStakingMiddlewareConfig(ctx context.Context, config *cfg.Config, logger *zap.Logger, priKeyS string) (*MantaStakingMiddlewareConfig, error) {
+func NewMantaStakingMiddlewareConfig(ctx context.Context, config *cfg.Config, logger *zap.Logger, priKeyS string, kmsID string, kmsRegion string) (*MantaStakingMiddlewareConfig, error) {
 	ethClient, err := node.DialEthClientWithTimeout(ctx, config.OpEventConfig.EthRpc, false)
 	if err != nil {
 		logger.Error("failed to dial eth client", zap.String("err", err.Error()))
 		return nil, err
 	}
+	var kmsClient *kms.Client
 	var privKey *ecdsa.PrivateKey
-	if priKeyS != "" {
-		privKey, err = crypto.HexToECDSA(priKeyS)
+	if config.EnableKms {
+		kmsClient, err = kmssigner.NewKmsClientFromConfig(context.Background(), kmsRegion)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to create the kms client: %w", err)
 		}
 	} else {
-		return nil, errors.New("need to config private key")
+		if priKeyS != "" {
+			privKey, err = crypto.HexToECDSA(priKeyS)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, errors.New("need to config private key")
+		}
 	}
 
 	return &MantaStakingMiddlewareConfig{
@@ -68,5 +83,9 @@ func NewMantaStakingMiddlewareConfig(ctx context.Context, config *cfg.Config, lo
 		HsmApiName:                    config.OpEventConfig.HsmApiName,
 		HsmCreden:                     config.OpEventConfig.HsmCreden,
 		HsmAddress:                    config.OpEventConfig.HsmAddress,
+		EnableKms:                     config.EnableKms,
+		KmsID:                         kmsID,
+		KmsRegion:                     kmsRegion,
+		KmsClient:                     kmsClient,
 	}, nil
 }

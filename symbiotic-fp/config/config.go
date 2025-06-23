@@ -39,6 +39,7 @@ type Config struct {
 	LogLevel                    string        `long:"loglevel" description:"Logging level for all subsystems" choice:"trace" choice:"debug" choice:"info" choice:"warn" choice:"error" choice:"fatal"`
 	SymbioticStakeUrl           string        `long:"symbioticstakeurl" description:"The url to get the symbiotic stake amount"`
 	StakeLimit                  string        `long:"stakelimit" description:"The limit of the total stake required to start symbiotic fp"`
+	EnableKms                   bool          `long:"enablekms" description:"Whether to use aws kms"`
 
 	OpEventConfig *OpEventConfig `group:"opeventconfig" namespace:"opeventconfig"`
 
@@ -47,6 +48,8 @@ type Config struct {
 	CelestiaConfig *CelestiaConfig `group:"celestiaconfig" namespace:"celestiaconfig"`
 
 	Metrics *metrics.Config `group:"metrics" namespace:"metrics"`
+
+	Api *ApiConfig `group:"api" namespace:"api"`
 }
 
 func DefaultConfigWithHome(homePath string) Config {
@@ -62,10 +65,12 @@ func DefaultConfigWithHome(homePath string) Config {
 		RewardAddress:               defaultEthAddr,
 		Commission:                  defaultCommission,
 		LogLevel:                    defaultLogLevel.String(),
+		EnableKms:                   false,
 		DatabaseConfig:              DefaultDBConfigWithHomePath(homePath),
 		OpEventConfig:               &opEventConfig,
 		CelestiaConfig:              &celestiaConfig,
 		Metrics:                     metrics.DefaultFpConfig(),
+		Api:                         DefaultApiConfig(),
 	}
 
 	if err := cfg.Validate(); err != nil {
