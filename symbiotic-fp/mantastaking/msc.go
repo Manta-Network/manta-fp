@@ -47,6 +47,7 @@ type MantaStakingMiddleware struct {
 	RawSymbioticOperatorRegisterContract *bind.BoundContract
 	WalletAddr                           common.Address
 	PrivateKey                           *ecdsa.PrivateKey
+	Pubkey                               *ecdsa.PublicKey
 	txMgr                                txmgr.TxManager
 	log                                  *zap.Logger
 	ChainPoller                          *OpChainPoller
@@ -106,17 +107,21 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 
 	txMgr := txmgr.NewSimpleTxManager(txManagerConfig, mCfg.EthClient)
 	var walletAddr common.Address
+	var pubkey *ecdsa.PublicKey
 	if mCfg.EnableHsm {
 		walletAddr = common.HexToAddress(mCfg.HsmAddress)
 	} else if config.EnableKms {
-		fmt.Println(mCfg.KmsRegion)
-		fmt.Println(mCfg.KmsID)
 		walletAddr, err = kmssigner.GetAddress(mCfg.KmsClient, mCfg.KmsID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get the kms address: %w", err)
 		}
+		pubkey, err = kmssigner.GetPubKey(mCfg.KmsClient, mCfg.KmsID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get the kms pubkey: %w", err)
+		}
 	} else {
 		walletAddr = crypto.PubkeyToAddress(mCfg.PrivateKey.PublicKey)
+		pubkey = &mCfg.PrivateKey.PublicKey
 	}
 
 	fpMetrics := metrics.NewSymbioticFpMetrics()
@@ -149,6 +154,7 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 		ChainPoller:                          poller,
 		DAClient:                             daClient,
 		PrivateKey:                           mCfg.PrivateKey,
+		Pubkey:                               pubkey,
 		isStarted:                            atomic.NewBool(false),
 		metrics:                              fpMetrics,
 		SignatureSubmissionInterval:          config.SignatureSubmissionInterval,
@@ -360,10 +366,21 @@ func (msm *MantaStakingMiddleware) SubmitBatchFinalitySignatures(ctx context.Con
 	}
 
 	stateRoot := blocks[len(blocks)-1].StateRoot
-	signature, err := crypto.Sign(stateRoot.StateRoot[:], msm.PrivateKey)
-	if err != nil {
-		msm.log.Error("failed to sign data", zap.String("err", err.Error()))
-		return err
+
+	var signature []byte
+	var err error
+	if msm.Cfg.EnableKms {
+		signature, err = kmssigner.SignFromKms(context.Background(), msm.Cfg.KmsClient, msm.Cfg.KmsID, stateRoot.StateRoot[:])
+		if err != nil {
+			msm.log.Error("failed to sign data by kms", zap.String("err", err.Error()))
+			return err
+		}
+	} else {
+		signature, err = crypto.Sign(stateRoot.StateRoot[:], msm.PrivateKey)
+		if err != nil {
+			msm.log.Error("failed to sign data by privateKey", zap.String("err", err.Error()))
+			return err
+		}
 	}
 
 	signRequest := types2.SignRequest{
@@ -555,8 +572,8 @@ func (msm *MantaStakingMiddleware) registerOperator(ctx context.Context) (*types
 	opts.Nonce = nonce
 	opts.NoSend = true
 
-	xBytes := msm.PrivateKey.PublicKey.X.Bytes()
-	yBytes := msm.PrivateKey.PublicKey.Y.Bytes()
+	xBytes := msm.Pubkey.X.Bytes()
+	yBytes := msm.Pubkey.Y.Bytes()
 	paddedX := make([]byte, 32)
 	copy(paddedX[32-len(xBytes):], xBytes)
 	paddedY := make([]byte, 32)
