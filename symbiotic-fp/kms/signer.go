@@ -145,6 +145,24 @@ func getSignatureFromKms(
 	return sigAsn1.R.Bytes, sigAsn1.S.Bytes, nil
 }
 
+func SignFromKms(
+	ctx context.Context, svc *kms.Client, keyId string, txHashBytes []byte,
+) ([]byte, error) {
+	signInput := &kms.SignInput{
+		KeyId:            aws.String(keyId),
+		SigningAlgorithm: awsKmsSignOperationSigningAlgorithm,
+		MessageType:      awsKmsSignOperationMessageType,
+		Message:          txHashBytes,
+	}
+
+	signOutput, err := svc.Sign(ctx, signInput)
+	if err != nil {
+		return nil, err
+	}
+
+	return signOutput.Signature, nil
+}
+
 func getEthereumSignature(expectedPublicKeyBytes []byte, txHash []byte, r []byte, s []byte) ([]byte, error) {
 	rsSignature := append(adjustSignatureLength(r), adjustSignatureLength(s)...)
 	signature := append(rsSignature, []byte{0}...)
