@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"log"
 	"math/big"
 	"net"
 	"net/http"
@@ -138,10 +137,8 @@ func (c *clnt) BlockHeaderByNumber(number *big.Int) (*types.Header, error) {
 	var header *types.Header
 	err := c.rpc.CallContext(ctxwt, &header, "eth_getBlockByNumber", toBlockNumArg(number), false)
 	if err != nil {
-		log.Fatalln("Call eth_getBlockByNumber method fail", "err", err)
 		return nil, err
 	} else if header == nil {
-		log.Println("header not found")
 		return nil, ethereum.NotFound
 	}
 
