@@ -251,6 +251,10 @@ func (msm *MantaStakingMiddleware) finalitySigSubmissionLoop() {
 	for {
 		select {
 		case <-time.After(msm.SignatureSubmissionInterval):
+			pollerBlocks := msm.getAllBlocksFromChan()
+			if len(pollerBlocks) == 0 {
+				continue
+			}
 			if err := msm.checkOperatorIsPaused(); err != nil {
 				msm.log.Error("the symbiotic-fp failed to check operator is paused",
 					zap.String("address", msm.WalletAddr.String()),
@@ -275,11 +279,6 @@ func (msm *MantaStakingMiddleware) finalitySigSubmissionLoop() {
 			}
 
 			msm.metrics.RecordFpStatus(msm.WalletAddr.String(), common2.Active)
-
-			pollerBlocks := msm.getAllBlocksFromChan()
-			if len(pollerBlocks) == 0 {
-				continue
-			}
 			targetHeight := pollerBlocks[len(pollerBlocks)-1].Height
 			msm.log.Debug("the symbiotic-fp received new block(s), start processing",
 				zap.String("address", msm.WalletAddr.String()),
