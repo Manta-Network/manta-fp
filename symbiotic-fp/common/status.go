@@ -5,3 +5,7 @@ const (
 	InActive
 	Paused
 )
+
+const (
+	StakeLimit = "400000000000000000000000"
+)

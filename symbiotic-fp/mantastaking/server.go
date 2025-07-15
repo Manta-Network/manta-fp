@@ -5,16 +5,17 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/service/kms"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/Manta-Network/manta-fp/ethereum/node"
+	common2 "github.com/Manta-Network/manta-fp/symbiotic-fp/common"
 	cfg "github.com/Manta-Network/manta-fp/symbiotic-fp/config"
 	kmssigner "github.com/Manta-Network/manta-fp/symbiotic-fp/kms"
 
+	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"go.uber.org/zap"
 	"math/big"
 )
@@ -72,7 +73,7 @@ func NewMantaStakingMiddlewareConfig(ctx context.Context, config *cfg.Config, lo
 		MantaStakingMiddlewareAddr:    common.HexToAddress(config.OpEventConfig.MantaStakingMiddlewareAddress),
 		SymbioticOperatorRegisterAddr: common.HexToAddress(config.OpEventConfig.SymbioticOperatorRegisterAddress),
 		SymbioticStakeUrl:             config.SymbioticStakeUrl,
-		StakeLimit:                    config.StakeLimit,
+		StakeLimit:                    common2.StakeLimit,
 		PrivateKey:                    privKey,
 		NumConfirmations:              config.OpEventConfig.NumConfirmations,
 		SafeAbortNonceTooLowCount:     config.OpEventConfig.SafeAbortNonceTooLowCount,
