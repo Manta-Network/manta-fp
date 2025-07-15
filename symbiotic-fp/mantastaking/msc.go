@@ -8,10 +8,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math"
 	"math/big"
-	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -263,21 +261,6 @@ func (msm *MantaStakingMiddleware) finalitySigSubmissionLoop() {
 				continue
 			}
 
-			isActive, err := msm.checkOperatorIsDelegateActive()
-			if err != nil {
-				msm.log.Error("the symbiotic-fp failed to check operator is delegate active",
-					zap.String("address", msm.WalletAddr.String()),
-					zap.String("error", err.Error()),
-				)
-				continue
-			}
-
-			if !isActive {
-				msm.log.Warn("the symbiotic-fp is not delegate active, skip sign")
-				msm.metrics.RecordFpStatus(msm.WalletAddr.String(), common2.InActive)
-				continue
-			}
-
 			msm.metrics.RecordFpStatus(msm.WalletAddr.String(), common2.Active)
 			targetHeight := pollerBlocks[len(pollerBlocks)-1].Height
 			msm.log.Debug("the symbiotic-fp received new block(s), start processing",
@@ -285,7 +268,7 @@ func (msm *MantaStakingMiddleware) finalitySigSubmissionLoop() {
 				zap.Uint64("start_height", pollerBlocks[0].Height),
 				zap.Uint64("end_height", targetHeight),
 			)
-			err = msm.retrySubmitSigsUntilFinalized(pollerBlocks)
+			err := msm.retrySubmitSigsUntilFinalized(pollerBlocks)
 			if err != nil {
 				msm.log.Error("the symbiotic-fp failed to submit signature",
 					zap.String("address", msm.WalletAddr.String()),
@@ -626,75 +609,6 @@ func (msm *MantaStakingMiddleware) checkOperatorIsPaused() error {
 	}
 
 	return nil
-}
-
-func (msm *MantaStakingMiddleware) checkOperatorIsDelegateActive() (bool, error) {
-	stakeAmount, err := msm.getSymbioticOperatorStakeAmount(strings.ToLower(msm.WalletAddr.String()))
-	if err != nil {
-		msm.log.Error("failed to get operator stake amount", zap.String("address", msm.WalletAddr.String()), zap.Error(err))
-		return false, err
-	}
-
-	stakeLimit, _ := new(big.Int).SetString(msm.Cfg.StakeLimit, 10)
-	if stakeAmount.Cmp(stakeLimit) < 0 {
-		msm.log.Error("the total stake amount is insufficient", zap.String("staked", stakeAmount.String()), zap.String("required", msm.Cfg.StakeLimit))
-		return false, nil
-	}
-
-	return true, nil
-}
-
-func (msm *MantaStakingMiddleware) getSymbioticOperatorStakeAmount(operator string) (*big.Int, error) {
-	query := fmt.Sprintf(`{"query":"query {\n  vaultUpdates(first: 1, where: {operator: \"%s\"}, orderBy: timestamp, orderDirection: desc) {\n    vaultTotalActiveStaked\n  }\n}"}`, operator)
-	jsonQuery := []byte(query)
-
-	req, err := http.NewRequest("POST", msm.Cfg.SymbioticStakeUrl, bytes.NewBuffer(jsonQuery))
-	if err != nil {
-		msm.log.Error("Error creating HTTP request:", zap.Error(err))
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json, multipart/mixed")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		msm.log.Error("Error sending HTTP request:", zap.Error(err))
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		msm.log.Error("Error reading response body:", zap.Error(err))
-		return nil, err
-	}
-
-	var result map[string]interface{}
-	if err := json.Unmarshal(body, &result); err != nil {
-		msm.log.Error("Error parsing JSON response:", zap.Error(err))
-		return nil, err
-	}
-
-	var totalStaked = big.NewInt(0)
-	if data, exists := result["data"]; exists {
-		if vaultUpdates, exists := data.(map[string]interface{})["vaultUpdates"]; exists {
-			if len(vaultUpdates.([]interface{})) > 0 {
-				vaultTotalActiveStaked := vaultUpdates.([]interface{})[0].(map[string]interface{})["vaultTotalActiveStaked"]
-				totalStaked, _ = new(big.Int).SetString(vaultTotalActiveStaked.(string), 10)
-				msm.log.Info(fmt.Sprintf("operator %s vaultTotalActiveStaked: %s", operator, vaultTotalActiveStaked))
-			} else {
-				msm.log.Warn(fmt.Sprintf("operator %s no vault updates found", operator))
-			}
-		} else {
-			msm.log.Warn(fmt.Sprintf("operator %s no vaultUpdates field found in response data", operator))
-		}
-	} else {
-		msm.log.Warn(fmt.Sprintf("operator %s no data field found in JSON response", operator))
-	}
-
-	return totalStaked, nil
 }
 
 func Keccak256Hash(data []byte) [32]byte {
