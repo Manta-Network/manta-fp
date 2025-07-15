@@ -38,7 +38,6 @@ type Config struct {
 	Commission                  uint64        `long:"commission" description:"The custom commission, 10000 = 100%"`
 	LogLevel                    string        `long:"loglevel" description:"Logging level for all subsystems" choice:"trace" choice:"debug" choice:"info" choice:"warn" choice:"error" choice:"fatal"`
 	SymbioticStakeUrl           string        `long:"symbioticstakeurl" description:"The url to get the symbiotic stake amount"`
-	StakeLimit                  string        `long:"stakelimit" description:"The limit of the total stake required to start symbiotic fp"`
 	EnableKms                   bool          `long:"enablekms" description:"Whether to use aws kms"`
 
 	OpEventConfig *OpEventConfig `group:"opeventconfig" namespace:"opeventconfig"`
@@ -61,7 +60,6 @@ func DefaultConfigWithHome(homePath string) Config {
 		MaxSubmissionRetries:        defaultMaxSubmissionRetries,
 		OperatorName:                "",
 		SymbioticStakeUrl:           "",
-		StakeLimit:                  "",
 		RewardAddress:               defaultEthAddr,
 		Commission:                  defaultCommission,
 		LogLevel:                    defaultLogLevel.String(),

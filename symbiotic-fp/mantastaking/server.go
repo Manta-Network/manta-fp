@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/service/kms"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -15,6 +14,7 @@ import (
 	cfg "github.com/Manta-Network/manta-fp/symbiotic-fp/config"
 	kmssigner "github.com/Manta-Network/manta-fp/symbiotic-fp/kms"
 
+	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"go.uber.org/zap"
 	"math/big"
 )
@@ -24,8 +24,6 @@ type MantaStakingMiddlewareConfig struct {
 	ChainID                       *big.Int
 	MantaStakingMiddlewareAddr    common.Address
 	SymbioticOperatorRegisterAddr common.Address
-	SymbioticStakeUrl             string
-	StakeLimit                    string
 	PrivateKey                    *ecdsa.PrivateKey
 	NumConfirmations              uint64
 	SafeAbortNonceTooLowCount     uint64
@@ -71,8 +69,6 @@ func NewMantaStakingMiddlewareConfig(ctx context.Context, config *cfg.Config, lo
 		ChainID:                       big.NewInt(int64(config.OpEventConfig.ChainId)),
 		MantaStakingMiddlewareAddr:    common.HexToAddress(config.OpEventConfig.MantaStakingMiddlewareAddress),
 		SymbioticOperatorRegisterAddr: common.HexToAddress(config.OpEventConfig.SymbioticOperatorRegisterAddress),
-		SymbioticStakeUrl:             config.SymbioticStakeUrl,
-		StakeLimit:                    config.StakeLimit,
 		PrivateKey:                    privKey,
 		NumConfirmations:              config.OpEventConfig.NumConfirmations,
 		SafeAbortNonceTooLowCount:     config.OpEventConfig.SafeAbortNonceTooLowCount,
