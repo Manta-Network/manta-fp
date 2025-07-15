@@ -24,7 +24,6 @@ type MantaStakingMiddlewareConfig struct {
 	ChainID                       *big.Int
 	MantaStakingMiddlewareAddr    common.Address
 	SymbioticOperatorRegisterAddr common.Address
-	SymbioticStakeUrl             string
 	PrivateKey                    *ecdsa.PrivateKey
 	NumConfirmations              uint64
 	SafeAbortNonceTooLowCount     uint64
@@ -70,7 +69,6 @@ func NewMantaStakingMiddlewareConfig(ctx context.Context, config *cfg.Config, lo
 		ChainID:                       big.NewInt(int64(config.OpEventConfig.ChainId)),
 		MantaStakingMiddlewareAddr:    common.HexToAddress(config.OpEventConfig.MantaStakingMiddlewareAddress),
 		SymbioticOperatorRegisterAddr: common.HexToAddress(config.OpEventConfig.SymbioticOperatorRegisterAddress),
-		SymbioticStakeUrl:             config.SymbioticStakeUrl,
 		PrivateKey:                    privKey,
 		NumConfirmations:              config.OpEventConfig.NumConfirmations,
 		SafeAbortNonceTooLowCount:     config.OpEventConfig.SafeAbortNonceTooLowCount,
