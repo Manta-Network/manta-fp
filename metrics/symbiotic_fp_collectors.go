@@ -36,7 +36,7 @@ func NewSymbioticFpMetrics() *SymbioticFpMetrics {
 		symbioticFpMetricsInstance = &SymbioticFpMetrics{
 			fpStatus: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 				Name: "fp_status",
-				Help: "Current status of a finality provider, 0 for active, 1 for inActive and 2 for Paused",
+				Help: "Current status of a finality provider, 0 for active and 1 for Paused",
 			}, []string{"operator_address"}),
 			lastPolledHeight: prometheus.NewGauge(prometheus.GaugeOpts{
 				Name: "last_polled_height",

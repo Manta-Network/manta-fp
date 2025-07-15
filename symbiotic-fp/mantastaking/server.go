@@ -11,7 +11,6 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/Manta-Network/manta-fp/ethereum/node"
-	common2 "github.com/Manta-Network/manta-fp/symbiotic-fp/common"
 	cfg "github.com/Manta-Network/manta-fp/symbiotic-fp/config"
 	kmssigner "github.com/Manta-Network/manta-fp/symbiotic-fp/kms"
 
@@ -26,7 +25,6 @@ type MantaStakingMiddlewareConfig struct {
 	MantaStakingMiddlewareAddr    common.Address
 	SymbioticOperatorRegisterAddr common.Address
 	SymbioticStakeUrl             string
-	StakeLimit                    string
 	PrivateKey                    *ecdsa.PrivateKey
 	NumConfirmations              uint64
 	SafeAbortNonceTooLowCount     uint64
@@ -73,7 +71,6 @@ func NewMantaStakingMiddlewareConfig(ctx context.Context, config *cfg.Config, lo
 		MantaStakingMiddlewareAddr:    common.HexToAddress(config.OpEventConfig.MantaStakingMiddlewareAddress),
 		SymbioticOperatorRegisterAddr: common.HexToAddress(config.OpEventConfig.SymbioticOperatorRegisterAddress),
 		SymbioticStakeUrl:             config.SymbioticStakeUrl,
-		StakeLimit:                    common2.StakeLimit,
 		PrivateKey:                    privKey,
 		NumConfirmations:              config.OpEventConfig.NumConfirmations,
 		SafeAbortNonceTooLowCount:     config.OpEventConfig.SafeAbortNonceTooLowCount,
