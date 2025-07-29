@@ -401,9 +401,11 @@ func (msm *MantaStakingMiddleware) SubmitBatchFinalitySignatures(ctx context.Con
 						msm.log.Error("celestia: failed to validate proof",
 							zap.String("err", err.Error()),
 							zap.Any("valid", valids))
+						return err
 					}
 				} else {
 					msm.log.Error("celestia: failed to get proof", zap.String("err", err.Error()))
+					return err
 				}
 			}
 		} else {
