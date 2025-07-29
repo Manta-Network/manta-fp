@@ -157,6 +157,7 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 		metrics:                              fpMetrics,
 		SignatureSubmissionInterval:          config.SignatureSubmissionInterval,
 		SubmissionRetryInterval:              config.SubmissionRetryInterval,
+		MaxSubmissionRetries:                 config.MaxSubmissionRetries,
 	}, nil
 }
 
