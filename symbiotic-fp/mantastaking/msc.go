@@ -405,9 +405,11 @@ func (msm *MantaStakingMiddleware) SubmitBatchFinalitySignatures(ctx context.Con
 					return err
 				}
 			}
+			return err
 		} else {
 			msm.log.Info("celestia: failed to create commitment", zap.String("err", err.Error()))
 			msm.metrics.IncrementFpTotalFailedVotes(msm.WalletAddr.String())
+			return err
 		}
 	}
 
