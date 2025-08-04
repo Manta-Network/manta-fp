@@ -404,13 +404,16 @@ func (msm *MantaStakingMiddleware) SubmitBatchFinalitySignatures(ctx context.Con
 					msm.log.Error("celestia: failed to get proof", zap.String("err", err.Error()))
 					return err
 				}
+			} else {
+				return err
 			}
-			return err
 		} else {
 			msm.log.Info("celestia: failed to create commitment", zap.String("err", err.Error()))
 			msm.metrics.IncrementFpTotalFailedVotes(msm.WalletAddr.String())
 			return err
 		}
+	} else {
+		return errors.New("celestia client does not exist")
 	}
 
 	msm.metrics.RecordFpLastVotedL1Height(msm.WalletAddr.String(), stateRoot.L1BlockNumber)
