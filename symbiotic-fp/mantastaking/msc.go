@@ -157,6 +157,7 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 		metrics:                              fpMetrics,
 		SignatureSubmissionInterval:          config.SignatureSubmissionInterval,
 		SubmissionRetryInterval:              config.SubmissionRetryInterval,
+		MaxSubmissionRetries:                 config.MaxSubmissionRetries,
 	}, nil
 }
 
@@ -293,10 +294,6 @@ func (msm *MantaStakingMiddleware) finalitySigSubmissionLoop() {
 // retrySubmitSigsUntilFinalized periodically tries to submit finality signature until success or the block is finalized
 // error will be returned if maximum retries have been reached or the query to the consumer chain fails
 func (msm *MantaStakingMiddleware) retrySubmitSigsUntilFinalized(targetBlocks []*types2.BlockInfo) error {
-	if len(targetBlocks) == 0 {
-		return fmt.Errorf("cannot send signatures for empty blocks")
-	}
-
 	var failedCycles uint32
 	targetHeight := targetBlocks[len(targetBlocks)-1].Height
 
@@ -401,15 +398,22 @@ func (msm *MantaStakingMiddleware) SubmitBatchFinalitySignatures(ctx context.Con
 						msm.log.Error("celestia: failed to validate proof",
 							zap.String("err", err.Error()),
 							zap.Any("valid", valids))
+						return err
 					}
 				} else {
 					msm.log.Error("celestia: failed to get proof", zap.String("err", err.Error()))
+					return err
 				}
+			} else {
+				return err
 			}
 		} else {
 			msm.log.Info("celestia: failed to create commitment", zap.String("err", err.Error()))
 			msm.metrics.IncrementFpTotalFailedVotes(msm.WalletAddr.String())
+			return err
 		}
+	} else {
+		return errors.New("celestia client does not exist")
 	}
 
 	msm.metrics.RecordFpLastVotedL1Height(msm.WalletAddr.String(), stateRoot.L1BlockNumber)
@@ -452,12 +456,6 @@ func (msm *MantaStakingMiddleware) UpdateSymbioticGasPrice(opts *bind.TransactOp
 
 func (msm *MantaStakingMiddleware) SendTransaction(ctx context.Context, tx *types.Transaction) error {
 	return msm.Cfg.EthClient.SendTransaction(ctx, tx)
-}
-
-func (msm *MantaStakingMiddleware) IsMaxPriorityFeePerGasNotFoundError(err error) bool {
-	return strings.Contains(
-		err.Error(), common2.ErrMaxPriorityFeePerGasNotFound.Error(),
-	)
 }
 
 func (msm *MantaStakingMiddleware) registerSymbioticOperator(ctx context.Context) (*types.Transaction, *bind.TransactOpts, error) {
