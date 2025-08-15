@@ -88,7 +88,10 @@ func runStartCmd(cmd *cobra.Command, _ []string) error {
 	}
 
 	server := service.NewFinalityProviderServer(cfg, logger, dbBackend, shutdownInterceptor)
-
+	err = server.StartFinalityProviderServer()
+	if err != nil {
+		return fmt.Errorf("failed to start the manta fp server: %w", err)
+	}
 	mSMCfg, err := mantastaking.NewMantaStakingMiddlewareConfig(cmd.Context(), cfg, logger, priKey, kmsId, kmsRegion)
 	if err != nil {
 		return fmt.Errorf("failed to initialize the manta staking middleware config: %w", err)

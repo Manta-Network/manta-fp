@@ -39,7 +39,7 @@ type FinalityProviderInstance struct {
 	em       eotsmanager.EOTSManager
 	cc       clientcontroller.ClientController
 	poller   *OpChainPoller
-	metrics  *metrics.FpMetrics
+	metrics  *metrics.BbnFpMetrics
 	opClient node.EthClient
 	sRStore  *store.OpStateRootStore
 	eP       *opstack.EventProvider
@@ -66,7 +66,7 @@ func NewFinalityProviderInstance(
 	prStore *store.PubRandProofStore,
 	cc clientcontroller.ClientController,
 	em eotsmanager.EOTSManager,
-	metrics *metrics.FpMetrics,
+	metrics *metrics.BbnFpMetrics,
 	passphrase string,
 	errChan chan<- *CriticalError,
 	logger *zap.Logger,
@@ -108,7 +108,7 @@ func newFinalityProviderInstanceFromStore(
 	prStore *store.PubRandProofStore,
 	cc clientcontroller.ClientController,
 	em eotsmanager.EOTSManager,
-	metrics *metrics.FpMetrics,
+	metrics *metrics.BbnFpMetrics,
 	passphrase string,
 	errChan chan<- *CriticalError,
 	logger *zap.Logger,

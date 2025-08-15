@@ -8,10 +8,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math"
 	"math/big"
-	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -47,10 +45,12 @@ type MantaStakingMiddleware struct {
 	RawSymbioticOperatorRegisterContract *bind.BoundContract
 	WalletAddr                           common.Address
 	PrivateKey                           *ecdsa.PrivateKey
+	Pubkey                               *ecdsa.PublicKey
 	txMgr                                txmgr.TxManager
 	log                                  *zap.Logger
 	ChainPoller                          *OpChainPoller
 	DAClient                             *celestia.DAClient
+	metrics                              *metrics.SymbioticFpMetrics
 
 	SignatureSubmissionInterval time.Duration
 	SubmissionRetryInterval     time.Duration
@@ -105,6 +105,7 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 
 	txMgr := txmgr.NewSimpleTxManager(txManagerConfig, mCfg.EthClient)
 	var walletAddr common.Address
+	var pubkey *ecdsa.PublicKey
 	if mCfg.EnableHsm {
 		walletAddr = common.HexToAddress(mCfg.HsmAddress)
 	} else if config.EnableKms {
@@ -112,11 +113,16 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 		if err != nil {
 			return nil, fmt.Errorf("failed to get the kms address: %w", err)
 		}
+		pubkey, err = kmssigner.GetPubKey(mCfg.KmsClient, mCfg.KmsID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get the kms pubkey: %w", err)
+		}
 	} else {
 		walletAddr = crypto.PubkeyToAddress(mCfg.PrivateKey.PublicKey)
+		pubkey = &mCfg.PrivateKey.PublicKey
 	}
 
-	fpMetrics := metrics.NewFpMetrics()
+	fpMetrics := metrics.NewSymbioticFpMetrics()
 
 	sRStore, err := store.NewOpStateRootStore(db)
 	if err != nil {
@@ -146,9 +152,12 @@ func NewMantaStakingMiddleware(mCfg *MantaStakingMiddlewareConfig, config *confi
 		ChainPoller:                          poller,
 		DAClient:                             daClient,
 		PrivateKey:                           mCfg.PrivateKey,
+		Pubkey:                               pubkey,
 		isStarted:                            atomic.NewBool(false),
+		metrics:                              fpMetrics,
 		SignatureSubmissionInterval:          config.SignatureSubmissionInterval,
 		SubmissionRetryInterval:              config.SubmissionRetryInterval,
+		MaxSubmissionRetries:                 config.MaxSubmissionRetries,
 	}, nil
 }
 
@@ -241,6 +250,10 @@ func (msm *MantaStakingMiddleware) finalitySigSubmissionLoop() {
 	for {
 		select {
 		case <-time.After(msm.SignatureSubmissionInterval):
+			pollerBlocks := msm.getAllBlocksFromChan()
+			if len(pollerBlocks) == 0 {
+				continue
+			}
 			if err := msm.checkOperatorIsPaused(); err != nil {
 				msm.log.Error("the symbiotic-fp failed to check operator is paused",
 					zap.String("address", msm.WalletAddr.String()),
@@ -249,31 +262,14 @@ func (msm *MantaStakingMiddleware) finalitySigSubmissionLoop() {
 				continue
 			}
 
-			isActive, err := msm.checkOperatorIsDelegateActive()
-			if err != nil {
-				msm.log.Error("the symbiotic-fp failed to check operator is delegate active",
-					zap.String("address", msm.WalletAddr.String()),
-					zap.String("error", err.Error()),
-				)
-				continue
-			}
-
-			if !isActive {
-				msm.log.Warn("the symbiotic-fp is not delegate active, skip sign")
-				continue
-			}
-
-			pollerBlocks := msm.getAllBlocksFromChan()
-			if len(pollerBlocks) == 0 {
-				continue
-			}
+			msm.metrics.RecordFpStatus(msm.WalletAddr.String(), common2.Active)
 			targetHeight := pollerBlocks[len(pollerBlocks)-1].Height
 			msm.log.Debug("the symbiotic-fp received new block(s), start processing",
 				zap.String("address", msm.WalletAddr.String()),
 				zap.Uint64("start_height", pollerBlocks[0].Height),
 				zap.Uint64("end_height", targetHeight),
 			)
-			err = msm.retrySubmitSigsUntilFinalized(pollerBlocks)
+			err := msm.retrySubmitSigsUntilFinalized(pollerBlocks)
 			if err != nil {
 				msm.log.Error("the symbiotic-fp failed to submit signature",
 					zap.String("address", msm.WalletAddr.String()),
@@ -298,10 +294,6 @@ func (msm *MantaStakingMiddleware) finalitySigSubmissionLoop() {
 // retrySubmitSigsUntilFinalized periodically tries to submit finality signature until success or the block is finalized
 // error will be returned if maximum retries have been reached or the query to the consumer chain fails
 func (msm *MantaStakingMiddleware) retrySubmitSigsUntilFinalized(targetBlocks []*types2.BlockInfo) error {
-	if len(targetBlocks) == 0 {
-		return fmt.Errorf("cannot send signatures for empty blocks")
-	}
-
 	var failedCycles uint32
 	targetHeight := targetBlocks[len(targetBlocks)-1].Height
 
@@ -330,6 +322,7 @@ func (msm *MantaStakingMiddleware) retrySubmitSigsUntilFinalized(targetBlocks []
 				}
 			} else {
 				// the signature has been successfully submitted
+				msm.metrics.RecordFpLastProcessedHeight(msm.WalletAddr.String(), targetHeight)
 				return nil
 			}
 
@@ -352,10 +345,21 @@ func (msm *MantaStakingMiddleware) SubmitBatchFinalitySignatures(ctx context.Con
 	}
 
 	stateRoot := blocks[len(blocks)-1].StateRoot
-	signature, err := crypto.Sign(stateRoot.StateRoot[:], msm.PrivateKey)
-	if err != nil {
-		msm.log.Error("failed to sign data", zap.String("err", err.Error()))
-		return err
+
+	var signature []byte
+	var err error
+	if msm.Cfg.EnableKms {
+		signature, err = kmssigner.SignFromKms(context.Background(), msm.Cfg.KmsClient, msm.Cfg.KmsID, stateRoot.StateRoot[:])
+		if err != nil {
+			msm.log.Error("failed to sign data by kms", zap.String("err", err.Error()))
+			return err
+		}
+	} else {
+		signature, err = crypto.Sign(stateRoot.StateRoot[:], msm.PrivateKey)
+		if err != nil {
+			msm.log.Error("failed to sign data by privateKey", zap.String("err", err.Error()))
+			return err
+		}
 	}
 
 	signRequest := types2.SignRequest{
@@ -394,20 +398,27 @@ func (msm *MantaStakingMiddleware) SubmitBatchFinalitySignatures(ctx context.Con
 						msm.log.Error("celestia: failed to validate proof",
 							zap.String("err", err.Error()),
 							zap.Any("valid", valids))
+						return err
 					}
 				} else {
 					msm.log.Error("celestia: failed to get proof", zap.String("err", err.Error()))
+					return err
 				}
 			} else {
-				msm.log.Info("celestia: blob submission failed; falling back to eth",
-					zap.String("err", err.Error()),
-					zap.Any("ids", ids),
-					zap.ByteString("commit", commit))
+				return err
 			}
 		} else {
 			msm.log.Info("celestia: failed to create commitment", zap.String("err", err.Error()))
+			msm.metrics.IncrementFpTotalFailedVotes(msm.WalletAddr.String())
+			return err
 		}
+	} else {
+		return errors.New("celestia client does not exist")
 	}
+
+	msm.metrics.RecordFpLastVotedL1Height(msm.WalletAddr.String(), stateRoot.L1BlockNumber)
+	msm.metrics.RecordFpLastVotedL2Height(msm.WalletAddr.String(), stateRoot.L2BlockNumber.Uint64())
+	msm.metrics.IncrementFpTotalVotedBlocks(msm.WalletAddr.String())
 
 	return nil
 }
@@ -445,12 +456,6 @@ func (msm *MantaStakingMiddleware) UpdateSymbioticGasPrice(opts *bind.TransactOp
 
 func (msm *MantaStakingMiddleware) SendTransaction(ctx context.Context, tx *types.Transaction) error {
 	return msm.Cfg.EthClient.SendTransaction(ctx, tx)
-}
-
-func (msm *MantaStakingMiddleware) IsMaxPriorityFeePerGasNotFoundError(err error) bool {
-	return strings.Contains(
-		err.Error(), common2.ErrMaxPriorityFeePerGasNotFound.Error(),
-	)
 }
 
 func (msm *MantaStakingMiddleware) registerSymbioticOperator(ctx context.Context) (*types.Transaction, *bind.TransactOpts, error) {
@@ -547,8 +552,8 @@ func (msm *MantaStakingMiddleware) registerOperator(ctx context.Context) (*types
 	opts.Nonce = nonce
 	opts.NoSend = true
 
-	xBytes := msm.PrivateKey.PublicKey.X.Bytes()
-	yBytes := msm.PrivateKey.PublicKey.Y.Bytes()
+	xBytes := msm.Pubkey.X.Bytes()
+	yBytes := msm.Pubkey.Y.Bytes()
 	paddedX := make([]byte, 32)
 	copy(paddedX[32-len(xBytes):], xBytes)
 	paddedY := make([]byte, 32)
@@ -597,79 +602,11 @@ func (msm *MantaStakingMiddleware) checkOperatorIsPaused() error {
 
 	if operator.Paused {
 		msm.log.Error("the operator is paused")
+		msm.metrics.RecordFpStatus(msm.WalletAddr.String(), common2.Paused)
 		return fmt.Errorf("the operator is paused at block: %v, address: %v", latestBlock, msm.WalletAddr.String())
 	}
 
 	return nil
-}
-
-func (msm *MantaStakingMiddleware) checkOperatorIsDelegateActive() (bool, error) {
-	stakeAmount, err := msm.getSymbioticOperatorStakeAmount(strings.ToLower(msm.WalletAddr.String()))
-	if err != nil {
-		msm.log.Error("failed to get operator stake amount", zap.String("address", msm.WalletAddr.String()), zap.Error(err))
-		return false, err
-	}
-
-	stakeLimit, _ := new(big.Int).SetString(msm.Cfg.StakeLimit, 10)
-	if stakeAmount.Cmp(stakeLimit) < 0 {
-		msm.log.Error("the total stake amount is insufficient", zap.String("staked", stakeAmount.String()), zap.String("required", msm.Cfg.StakeLimit))
-		return false, nil
-	}
-
-	return true, nil
-}
-
-func (msm *MantaStakingMiddleware) getSymbioticOperatorStakeAmount(operator string) (*big.Int, error) {
-	query := fmt.Sprintf(`{"query":"query {\n  vaultUpdates(first: 1, where: {operator: \"%s\"}, orderBy: timestamp, orderDirection: desc) {\n    vaultTotalActiveStaked\n  }\n}"}`, operator)
-	jsonQuery := []byte(query)
-
-	req, err := http.NewRequest("POST", msm.Cfg.SymbioticStakeUrl, bytes.NewBuffer(jsonQuery))
-	if err != nil {
-		msm.log.Error("Error creating HTTP request:", zap.Error(err))
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json, multipart/mixed")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		msm.log.Error("Error sending HTTP request:", zap.Error(err))
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		msm.log.Error("Error reading response body:", zap.Error(err))
-		return nil, err
-	}
-
-	var result map[string]interface{}
-	if err := json.Unmarshal(body, &result); err != nil {
-		msm.log.Error("Error parsing JSON response:", zap.Error(err))
-		return nil, err
-	}
-
-	var totalStaked = big.NewInt(0)
-	if data, exists := result["data"]; exists {
-		if vaultUpdates, exists := data.(map[string]interface{})["vaultUpdates"]; exists {
-			if len(vaultUpdates.([]interface{})) > 0 {
-				vaultTotalActiveStaked := vaultUpdates.([]interface{})[0].(map[string]interface{})["vaultTotalActiveStaked"]
-				totalStaked, _ = new(big.Int).SetString(vaultTotalActiveStaked.(string), 10)
-				msm.log.Info(fmt.Sprintf("operator %s vaultTotalActiveStaked: %s", operator, vaultTotalActiveStaked))
-			} else {
-				msm.log.Warn(fmt.Sprintf("operator %s no vault updates found", operator))
-			}
-		} else {
-			msm.log.Warn(fmt.Sprintf("operator %s no vaultUpdates field found in response data", operator))
-		}
-	} else {
-		msm.log.Warn(fmt.Sprintf("operator %s no data field found in JSON response", operator))
-	}
-
-	return totalStaked, nil
 }
 
 func Keccak256Hash(data []byte) [32]byte {
