@@ -11,6 +11,7 @@ on:
     branches:
       - "dev"
       - "test"
+      - "main"
 
 jobs:
   determine-tag:
