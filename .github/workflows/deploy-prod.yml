@@ -1,0 +1,68 @@
+name: Deploy Prod
+
+on:
+  workflow_run:
+    workflows: ["build-image"]
+    types:
+      - completed
+  workflow_dispatch:
+
+
+jobs:
+  update-argocd:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout ArgoCD repo
+        uses: actions/checkout@v4
+        with:
+          repository: Manta-Network/manta-apps
+          token: ${{ secrets.MANTA_GITHUB_TOKEN }}
+
+      - name: Download image tag artifact from previous workflow
+        run: |
+          RUN_ID=${{ github.event.workflow_run.id }}
+          gh run download $RUN_ID --repo Manta-Network/manta-fp --name image-tag
+          cat image-tag.txt
+        env:
+          GH_TOKEN: ${{ secrets.MANTA_GITHUB_TOKEN }}
+
+      - name: Extract new image tag
+        run: echo "IMAGE_TAG=$(cat image-tag.txt)" >> $GITHUB_ENV
+
+      - name: Update ArgoCD manifests
+        run: |
+          BRANCH_NAME="update-image-tag-$(date +'%Y%m%d-%H%M%S')"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git pull --rebase origin main
+          git checkout -b "$BRANCH_NAME"
+
+          BASE_DIR="prod/manta-ap-prod/manta-fp-mn-mock"
+
+          find "$BASE_DIR" -type f -name values.yaml | grep -E '/manta-fp-(bfpd|sfpd|eotsd).*/values.yaml$' | while read -r file; do
+            echo "Updating tag in: $file"
+            sed -i "s|tag: \".*\"|tag: \"${IMAGE_TAG}\"|" "$file"
+          done
+
+          BASE_DIR="prod/manta-ap-prod/manta-fp-mainnet"
+
+          find "$BASE_DIR" -type f -name values.yaml | grep -E '/manta-fp-(bfpd|sfpd|eotsd).*/values.yaml$' | while read -r file; do
+            echo "Updating tag in: $file"
+            sed -i "s|tag: \".*\"|tag: \"${IMAGE_TAG}\"|" "$file"
+          done
+
+      - name: Commit changes and create PR
+        run: |
+          git commit -am "[From Github Action] Update mainnet manta-fp image tag to ${IMAGE_TAG}" || echo "No changes to commit"
+          git push origin "$BRANCH_NAME"
+
+          gh pr create --repo Manta-Network/manta-apps \
+            --title "[Github Action] Update mainnet manta-fp image tag to ${IMAGE_TAG}" \
+            --body "This PR updates mainnet manta-fp image tag to \`${IMAGE_TAG}\`. Generated automatically by GitHub Actions." \
+            --head "$BRANCH_NAME" \
+            --base main \
+        env:
+          GH_TOKEN: ${{ secrets.MANTA_GITHUB_TOKEN }}
