@@ -7,6 +7,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// AddVersionCommands adds all the version-related commands to the provided command.
+// The version commands are generic to {Babylon, Cosmos BSN, rollup BSN} finality providers
+func AddVersionCommands(cmd *cobra.Command, binaryName string) {
+	cmd.AddCommand(CommandVersion(binaryName))
+}
+
 // CommandVersion prints cmd version
 func CommandVersion(binaryName string) *cobra.Command {
 	var cmd = &cobra.Command{
@@ -31,8 +37,9 @@ func CommandVersion(binaryName string) *cobra.Command {
 			_, _ = sb.WriteString("Git Timestamp: " + ts)
 			_, _ = sb.WriteString("\n")
 
-			cmd.Printf(sb.String()) //nolint:govet // it's not an issue
+			cmd.Println(sb.String()) //nolint:govet // it's not an issue
 		},
 	}
+
 	return cmd
 }

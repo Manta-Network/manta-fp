@@ -1,10 +1,12 @@
 package types
 
 import (
-	"math/big"
-
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
+	"math/big"
 )
+
+var _ BlockDescription = (*BlockInfo)(nil)
 
 type Block struct {
 	Hash       common.Hash `json:"hash"`
@@ -38,10 +40,30 @@ type SignRequest struct {
 	SignAddress   string `json:"sign_address"`
 }
 
-type OperatorPaused struct {
-	Operator common.Address `json:"operator"`
+func NewBlockInfo(height uint64, hash []byte, finalized bool) *BlockInfo {
+	return &BlockInfo{
+		Height:    height,
+		Hash:      hash,
+		Finalized: finalized,
+	}
 }
 
-type OperatorUnpaused struct {
-	Operator common.Address `json:"operator"`
+func (b BlockInfo) GetHeight() uint64 {
+	return b.Height
+}
+
+func (b BlockInfo) GetHash() []byte {
+	return b.Hash
+}
+
+func (b BlockInfo) IsFinalized() bool {
+	return b.Finalized
+}
+
+func (b BlockInfo) MsgToSign(signCtx string) []byte {
+	if len(signCtx) == 0 {
+		return append(sdk.Uint64ToBigEndian(b.Height), b.Hash...)
+	}
+
+	return append([]byte(signCtx), append(sdk.Uint64ToBigEndian(b.Height), b.Hash...)...)
 }

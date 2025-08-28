@@ -1,32 +1,35 @@
 package daemon
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
-	"github.com/Manta-Network/manta-fp/util"
-
-	"github.com/babylonlabs-io/babylon/app/params"
+	"github.com/babylonlabs-io/babylon/v3/app/params"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/spf13/cobra"
+
+	"github.com/Manta-Network/manta-fp/util"
 )
 
 func getHomePath(cmd *cobra.Command) (string, error) {
-	rawHomePath, err := cmd.Flags().GetString(sdkflags.FlagHome)
+	return getCleanPath(cmd, sdkflags.FlagHome)
+}
+
+func getCleanPath(cmd *cobra.Command, flag string) (string, error) {
+	rawPath, err := cmd.Flags().GetString(flag)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get %s flag: %w", flag, err)
 	}
 
-	homePath, err := filepath.Abs(rawHomePath)
+	cleanPath, err := filepath.Abs(rawPath)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get absolute path: %w", err)
 	}
-	// Create home directory
-	homePath = util.CleanAndExpandPath(homePath)
 
-	return homePath, nil
+	return util.CleanAndExpandPath(cleanPath), nil
 }
 
 // PersistClientCtx persist some vars from the cmd or config to the client context.

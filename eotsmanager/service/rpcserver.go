@@ -2,11 +2,17 @@ package service
 
 import (
 	"context"
+	"errors"
+	"fmt"
+
+	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/gogo/status"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 
 	"github.com/Manta-Network/manta-fp/eotsmanager"
 	"github.com/Manta-Network/manta-fp/eotsmanager/proto"
-
-	"google.golang.org/grpc"
+	"github.com/Manta-Network/manta-fp/eotsmanager/types"
 )
 
 // rpcServer is the main RPC server for the EOTS daemon that handles
@@ -14,12 +20,12 @@ import (
 type rpcServer struct {
 	proto.UnimplementedEOTSManagerServer
 
-	em eotsmanager.EOTSManager
+	em *eotsmanager.LocalEOTSManager
 }
 
 // newRPCServer creates a new RPC sever from the set of input dependencies.
 func newRPCServer(
-	em eotsmanager.EOTSManager,
+	em *eotsmanager.LocalEOTSManager,
 ) *rpcServer {
 	return &rpcServer{
 		em: em,
@@ -31,6 +37,7 @@ func newRPCServer(
 func (r *rpcServer) RegisterWithGrpcServer(grpcServer *grpc.Server) error {
 	// Register the main RPC server.
 	proto.RegisterEOTSManagerServer(grpcServer, r)
+
 	return nil
 }
 
@@ -38,25 +45,13 @@ func (r *rpcServer) Ping(_ context.Context, _ *proto.PingRequest) (*proto.PingRe
 	return &proto.PingResponse{}, nil
 }
 
-// CreateKey generates and saves an EOTS key
-func (r *rpcServer) CreateKey(_ context.Context, req *proto.CreateKeyRequest) (
-	*proto.CreateKeyResponse, error) {
-	pk, err := r.em.CreateKey(req.Name, req.Passphrase, req.HdPath)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &proto.CreateKeyResponse{Pk: pk}, nil
-}
-
 // CreateRandomnessPairList returns a list of Schnorr randomness pairs
 func (r *rpcServer) CreateRandomnessPairList(_ context.Context, req *proto.CreateRandomnessPairListRequest) (
 	*proto.CreateRandomnessPairListResponse, error) {
-	pubRandList, err := r.em.CreateRandomnessPairList(req.Uid, req.ChainId, req.StartHeight, req.Num, req.Passphrase)
+	pubRandList, err := r.em.CreateRandomnessPairList(req.Uid, req.ChainId, req.StartHeight, req.Num)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create randomness pair list: %w", err)
 	}
 
 	pubRandBytesList := make([][]byte, 0, len(pubRandList))
@@ -69,28 +64,35 @@ func (r *rpcServer) CreateRandomnessPairList(_ context.Context, req *proto.Creat
 	}, nil
 }
 
-// KeyRecord returns the key record
-func (r *rpcServer) KeyRecord(_ context.Context, req *proto.KeyRecordRequest) (
-	*proto.KeyRecordResponse, error) {
-	record, err := r.em.KeyRecord(req.Uid, req.Passphrase)
+// CreateRandomnessPairListWithInterval returns a list of Schnorr randomness pairs with a specified interval between heights.
+func (r *rpcServer) CreateRandomnessPairListWithInterval(_ context.Context, req *proto.CreateRandomnessPairListWithIntervalRequest) (
+	*proto.CreateRandomnessPairListWithIntervalResponse, error) {
+	pubRandList, err := r.em.CreateRandomnessPairListWithInterval(req.Uid, req.ChainId, req.StartHeight, req.Num, req.Interval)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create randomness pair list with interval: %w", err)
 	}
 
-	res := &proto.KeyRecordResponse{
-		Name:       record.Name,
-		PrivateKey: record.PrivKey.Serialize(),
+	pubRandBytesList := make([][]byte, 0, len(pubRandList))
+	for _, p := range pubRandList {
+		pubRandBytesList = append(pubRandBytesList, p.Bytes()[:])
 	}
 
-	return res, nil
+	return &proto.CreateRandomnessPairListWithIntervalResponse{
+		PubRandList: pubRandBytesList,
+	}, nil
 }
 
 // SignEOTS signs an EOTS with the EOTS private key and the relevant randomness
 func (r *rpcServer) SignEOTS(_ context.Context, req *proto.SignEOTSRequest) (
 	*proto.SignEOTSResponse, error) {
-	sig, err := r.em.SignEOTS(req.Uid, req.ChainId, req.Msg, req.Height, req.Passphrase)
+	sig, err := r.em.SignEOTS(req.Uid, req.ChainId, req.Msg, req.Height)
 	if err != nil {
-		return nil, err
+		if errors.Is(err, types.ErrDoubleSign) {
+			return nil, status.Error(codes.FailedPrecondition, err.Error()) //nolint:wrapcheck
+		}
+
+		return nil, fmt.Errorf("failed to sign EOTS: %w", err)
 	}
 
 	sigBytes := sig.Bytes()
@@ -101,9 +103,9 @@ func (r *rpcServer) SignEOTS(_ context.Context, req *proto.SignEOTSRequest) (
 // UnsafeSignEOTS only used for testing purposes. Doesn't offer slashing protection!
 func (r *rpcServer) UnsafeSignEOTS(_ context.Context, req *proto.SignEOTSRequest) (
 	*proto.SignEOTSResponse, error) {
-	sig, err := r.em.UnsafeSignEOTS(req.Uid, req.ChainId, req.Msg, req.Height, req.Passphrase)
+	sig, err := r.em.UnsafeSignEOTS(req.Uid, req.ChainId, req.Msg, req.Height)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to sign EOTS: %w", err)
 	}
 
 	sigBytes := sig.Bytes()
@@ -114,10 +116,46 @@ func (r *rpcServer) UnsafeSignEOTS(_ context.Context, req *proto.SignEOTSRequest
 // SignSchnorrSig signs a Schnorr sig with the EOTS private key
 func (r *rpcServer) SignSchnorrSig(_ context.Context, req *proto.SignSchnorrSigRequest) (
 	*proto.SignSchnorrSigResponse, error) {
-	sig, err := r.em.SignSchnorrSig(req.Uid, req.Msg, req.Passphrase)
+	sig, err := r.em.SignSchnorrSig(req.Uid, req.Msg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to sign EOTS: %w", err)
 	}
 
 	return &proto.SignSchnorrSigResponse{Sig: sig.Serialize()}, nil
+}
+
+// SaveEOTSKeyName signs a Schnorr sig with the EOTS private key
+func (r *rpcServer) SaveEOTSKeyName(
+	_ context.Context,
+	req *proto.SaveEOTSKeyNameRequest,
+) (*proto.SaveEOTSKeyNameResponse, error) {
+	eotsPk, err := btcec.ParsePubKey(req.EotsPk)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse EOTS public key: %w", err)
+	}
+	if err := r.em.SaveEOTSKeyName(eotsPk, req.KeyName); err != nil {
+		return nil, fmt.Errorf("failed to save EOTS key name: %w", err)
+	}
+
+	return &proto.SaveEOTSKeyNameResponse{}, nil
+}
+
+func (r *rpcServer) Backup(_ context.Context, req *proto.BackupRequest) (*proto.BackupResponse, error) {
+	backupName, err := r.em.Backup(req.DbPath, req.BackupDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to backup: %w", err)
+	}
+
+	return &proto.BackupResponse{
+		BackupName: backupName,
+	}, nil
+}
+
+func (r *rpcServer) UnlockKey(_ context.Context, req *proto.UnlockKeyRequest) (*proto.UnlockKeyResponse, error) {
+	err := r.em.Unlock(req.Uid, req.Passphrase)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unlock key: %w", err)
+	}
+
+	return &proto.UnlockKeyResponse{}, nil
 }

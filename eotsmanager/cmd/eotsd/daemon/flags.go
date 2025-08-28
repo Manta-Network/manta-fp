@@ -1,8 +1,11 @@
 package daemon
 
 const (
+	keyNameFlag           = "key-name"
+	eotsPkFlag            = "eots-pk"
 	forceFlag             = "force"
 	rpcListenerFlag       = "rpc-listener"
+	rpcClientFlag         = "rpc-client"
 	flagInteractive       = "interactive"
 	flagNoBackup          = "no-backup"
 	flagMultisig          = "multisig"
@@ -15,4 +18,6 @@ const (
 	flagIndex             = "index"
 	flagRecover           = "recover"
 	flagMnemonicSrc       = "source"
+	flagDBPath            = "db-path"
+	flagBackupDir         = "backup-dir"
 )

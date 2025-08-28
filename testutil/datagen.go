@@ -2,38 +2,46 @@ package testutil
 
 import (
 	"encoding/hex"
+	"fmt"
 	"math/rand"
 	"testing"
 	"time"
 
-	"github.com/Manta-Network/manta-fp/bbn-fp/store"
-	"github.com/Manta-Network/manta-fp/codec"
-	fpkr "github.com/Manta-Network/manta-fp/keyring"
-	"github.com/Manta-Network/manta-fp/types"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/babylonlabs-io/babylon/crypto/eots"
-	"github.com/babylonlabs-io/babylon/testutil/datagen"
-	bbn "github.com/babylonlabs-io/babylon/types"
+	"github.com/babylonlabs-io/babylon/v3/crypto/eots"
+	"github.com/babylonlabs-io/babylon/v3/testutil/datagen"
+	bbn "github.com/babylonlabs-io/babylon/v3/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Manta-Network/manta-fp/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/finality-provider/store"
+	fpkr "github.com/Manta-Network/manta-fp/keyring"
+
+	"github.com/Manta-Network/manta-fp/codec"
+	"github.com/Manta-Network/manta-fp/types"
 )
 
 func GenRandomByteArray(r *rand.Rand, length uint64) []byte {
 	newHeaderBytes := make([]byte, length)
 	r.Read(newHeaderBytes)
+
 	return newHeaderBytes
 }
 
 func GenRandomHexStr(r *rand.Rand, length uint64) string {
 	randBytes := GenRandomByteArray(r, length)
+
 	return hex.EncodeToString(randBytes)
 }
 
 func RandomDescription(r *rand.Rand) *stakingtypes.Description {
 	des := stakingtypes.NewDescription(GenRandomHexStr(r, 10), "", "", "", "")
+
 	return &des
 }
 
@@ -49,6 +57,7 @@ func AddRandomSeedsToFuzzer(f *testing.F, num uint) {
 func GenPublicRand(r *rand.Rand, t *testing.T) *bbn.SchnorrPubRand {
 	_, eotsPR, err := eots.RandGen(r)
 	require.NoError(t, err)
+
 	return bbn.NewSchnorrPubRandFromFieldVal(eotsPR)
 }
 
@@ -61,12 +70,20 @@ func GenRandomFinalityProvider(r *rand.Rand, t *testing.T) *store.StoredFinality
 	fpAddr, err := sdk.AccAddressFromBech32(datagen.GenRandomAccount().Address)
 	require.NoError(t, err)
 
+	commRates := ZeroCommissionRate()
+	zeroRate := commRates.Rate
+
 	return &store.StoredFinalityProvider{
 		FPAddr:      fpAddr.String(),
 		ChainID:     "chain-test",
 		BtcPk:       bip340PK.MustToBTCPK(),
 		Description: RandomDescription(r),
-		Commission:  ZeroCommissionRate(),
+		Commission:  &zeroRate,
+		CommissionInfo: &proto.CommissionInfo{
+			MaxRate:       commRates.MaxRate.String(),
+			MaxChangeRate: commRates.MaxChangeRate.String(),
+			UpdateTime:    timestamppb.New(time.Now().Add(-25 * time.Hour).UTC()),
+		},
 	}
 }
 
@@ -74,14 +91,10 @@ func GenValidSlashingRate(r *rand.Rand) sdkmath.LegacyDec {
 	return sdkmath.LegacyNewDecWithPrec(int64(datagen.RandomInt(r, 41)+10), 2)
 }
 
-func GenBlocks(r *rand.Rand, startHeight, endHeight uint64) []*types.BlockInfo {
-	blocks := make([]*types.BlockInfo, 0)
+func GenBlocksDesc(r *rand.Rand, startHeight, endHeight uint64) []types.BlockDescription {
+	blocks := make([]types.BlockDescription, 0)
 	for i := startHeight; i <= endHeight; i++ {
-		b := &types.BlockInfo{
-			Height: i,
-			Hash:   datagen.GenRandomByteArray(r, 32),
-		}
-		blocks = append(blocks, b)
+		blocks = append(blocks, types.NewBlockInfo(i, datagen.GenRandomByteArray(r, 32), false))
 	}
 
 	return blocks
@@ -92,7 +105,7 @@ func CreateChainKey(keyringDir, chainID, keyName, backend, passphrase, hdPath, m
 		keyringDir, chainID,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create client ctx: %w", err)
 	}
 
 	krController, err := fpkr.NewChainKeyringController(
@@ -101,15 +114,21 @@ func CreateChainKey(keyringDir, chainID, keyName, backend, passphrase, hdPath, m
 		backend,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create chain keyring controller: %w", err)
 	}
 
-	return krController.CreateChainKey(passphrase, hdPath, mnemonic)
+	info, err := krController.CreateChainKey(passphrase, hdPath, mnemonic)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create chain key: %w", err)
+	}
+
+	return info, nil
 }
 
 func GenSdkContext(r *rand.Rand, t *testing.T) client.Context {
 	chainID := "testchain-" + GenRandomHexStr(r, 4)
 	dir := t.TempDir()
+
 	return client.Context{}.
 		WithChainID(chainID).
 		WithCodec(codec.MakeCodec()).

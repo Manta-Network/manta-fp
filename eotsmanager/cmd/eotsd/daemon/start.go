@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+
+	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cobra"
+
 	"github.com/Manta-Network/manta-fp/eotsmanager"
 	"github.com/Manta-Network/manta-fp/eotsmanager/config"
 	eotsservice "github.com/Manta-Network/manta-fp/eotsmanager/service"
 	"github.com/Manta-Network/manta-fp/log"
-
-	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/lightningnetwork/lnd/signal"
-	"github.com/spf13/cobra"
 )
 
 func NewStartCmd() *cobra.Command {
@@ -37,6 +38,10 @@ func startFn(cmd *cobra.Command, _ []string) error {
 	cfg, err := config.LoadConfig(homePath)
 	if err != nil {
 		return fmt.Errorf("failed to load config at %s: %w", homePath, err)
+	}
+
+	if cfg.KeyringBackend != keyring.BackendTest && cfg.KeyringBackend != keyring.BackendFile {
+		return fmt.Errorf("the keyring backend in config must be `test` or `file`, got %s", cfg.KeyringBackend)
 	}
 
 	rpcListener, err := cmd.Flags().GetString(rpcListenerFlag)
@@ -66,13 +71,11 @@ func startFn(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("failed to create EOTS manager: %w", err)
 	}
 
-	// Hook interceptor for os signals.
-	shutdownInterceptor, err := signal.Intercept()
-	if err != nil {
-		return fmt.Errorf("failed to set up shutdown interceptor: %w", err)
+	eotsServer := eotsservice.NewEOTSManagerServer(cfg, logger, eotsManager, dbBackend)
+
+	if err := eotsServer.RunUntilShutdown(cmd.Context()); err != nil {
+		return fmt.Errorf("failed to run EOTS server: %w", err)
 	}
 
-	eotsServer := eotsservice.NewEOTSManagerServer(cfg, logger, eotsManager, dbBackend, shutdownInterceptor)
-
-	return eotsServer.RunUntilShutdown()
+	return nil
 }
