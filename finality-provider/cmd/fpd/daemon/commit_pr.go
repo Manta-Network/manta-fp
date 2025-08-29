@@ -115,7 +115,6 @@ func RunCommandCommitPubRandWithConfig(_ client.Context, cmd *cobra.Command, hom
 	}
 
 	fpMetrics := metrics.NewFpMetrics()
-	poller := service.NewChainPoller(logger, cfg.PollerConfig, consumerCon, fpMetrics)
 
 	rndCommitter := service.NewDefaultRandomnessCommitter(
 		service.NewRandomnessCommitterConfig(cfg.NumPubRand, int64(cfg.TimestampingDelayBlocks), cfg.ContextSigningHeight),
@@ -132,7 +131,7 @@ func RunCommandCommitPubRandWithConfig(_ client.Context, cmd *cobra.Command, hom
 	)
 
 	fp, err := service.NewFinalityProviderInstance(
-		fpPk, cfg, fpStore, pubRandStore, cc, consumerCon, em, poller, rndCommitter, heightDeterminer, finalitySubmitter, fpMetrics,
+		fpPk, cfg, fpStore, pubRandStore, cc, consumerCon, em, nil, rndCommitter, heightDeterminer, finalitySubmitter, fpMetrics,
 		make(chan<- *service.CriticalError), logger)
 	if err != nil {
 		return fmt.Errorf("failed to create finality-provider %s instance: %w", fpPk.MarshalHex(), err)

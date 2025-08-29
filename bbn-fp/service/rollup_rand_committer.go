@@ -26,7 +26,7 @@ func NewRollupRandomnessCommitter(
 	consumerCon ccapi.ConsumerController,
 	em eotsmanager.EOTSManager,
 	logger *zap.Logger,
-	metrics *metrics.FpMetrics,
+	metrics *metrics.BbnFpMetrics,
 	interval uint64,
 ) *RollupRandomnessCommitter {
 	return &RollupRandomnessCommitter{

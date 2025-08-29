@@ -3,13 +3,15 @@ package service
 import (
 	"context"
 	"fmt"
-
 	rollupfpcc "github.com/Manta-Network/manta-fp/bbn-fp/clientcontroller"
 	rollupfpcfg "github.com/Manta-Network/manta-fp/bbn-fp/config"
 	fpcc "github.com/Manta-Network/manta-fp/clientcontroller"
+	"github.com/Manta-Network/manta-fp/ethereum/node"
 	"github.com/Manta-Network/manta-fp/finality-provider/service"
 	"github.com/Manta-Network/manta-fp/finality-provider/store"
+	"github.com/Manta-Network/manta-fp/l2chain/opstack"
 	"github.com/Manta-Network/manta-fp/metrics"
+	bbntypes "github.com/babylonlabs-io/babylon/v3/types"
 	"github.com/lightningnetwork/lnd/kvdb"
 	"go.uber.org/zap"
 )
@@ -19,6 +21,7 @@ func NewRollupBSNFinalityProviderAppFromConfig(
 	cfg *rollupfpcfg.RollupFPConfig,
 	db kvdb.Backend,
 	logger *zap.Logger,
+	fpPkStr string,
 ) (*service.FinalityProviderApp, error) {
 	cc, err := fpcc.NewBabylonController(cfg.Common.BabylonConfig, logger)
 	if err != nil {
@@ -43,8 +46,6 @@ func NewRollupBSNFinalityProviderAppFromConfig(
 	logger.Info("successfully connected to a remote EOTS manager", zap.String("address", cfg.Common.EOTSManagerAddress))
 
 	fpMetrics := metrics.NewFpMetrics()
-
-	poller := service.NewChainPoller(logger, cfg.Common.PollerConfig, consumerCon, fpMetrics)
 
 	pubRandStore, err := store.NewPubRandProofStore(db)
 	if err != nil {
@@ -87,7 +88,52 @@ func NewRollupBSNFinalityProviderAppFromConfig(
 		contractConfig.FinalitySignatureInterval,
 	)
 
-	fpApp, err := service.NewFinalityProviderApp(cfg.Common, cc, consumerCon, em, poller, rndCommitter, heightDeterminer, finalitySubmitter, fpMetrics, db, logger)
+	var fpPk *bbntypes.BIP340PubKey
+	if fpPkStr != "" {
+		// start the finality-provider instance with the given public key
+		fpPk, err = bbntypes.NewBIP340PubKeyFromHex(fpPkStr)
+		if err != nil {
+			return nil, fmt.Errorf("invalid finality provider public key %s: %w", fpPkStr, err)
+		}
+	}
+
+	fpStore, err := store.NewFinalityProviderStore(db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate finality provider store: %w", err)
+	}
+	sfp, err := fpStore.GetFinalityProvider(fpPk.MustToBTCPK())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get finality provider: %w", err)
+	}
+
+	sRStore, err := store.NewOpStateRootStore(db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate op state root store: %w", err)
+	}
+
+	opClient, err := node.DialEthClient(context.Background(), cfg.OpEventConfig.EthRpc)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create op client: %w", err)
+	}
+
+	ep, err := opstack.NewEventProvider(context.Background(), logger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate op event provider: %w", err)
+	}
+
+	startHeight, err := heightDeterminer.DetermineStartHeight(context.Background(), fpPk, func() (uint64, error) {
+		return sfp.LastVotedHeight, nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to determine start height: %w", err)
+	}
+
+	poller, err := service.NewOpChainPoller(logger, opClient, startHeight, cfg.OpEventConfig, sRStore, ep, fpMetrics)
+	if err != nil {
+		return nil, fmt.Errorf("failed to new op chain poller: %w", err)
+	}
+
+	fpApp, err := service.NewBsnFinalityProviderApp(cfg.Common, cc, consumerCon, em, poller, rndCommitter, heightDeterminer, finalitySubmitter, fpMetrics, db, logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create finality provider app: %w", err)
 	}

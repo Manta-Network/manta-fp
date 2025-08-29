@@ -35,8 +35,6 @@ var (
 	ErrBSNDuplicatedFinalitySig = sdkErr.Register("bsn_rollup", 1001, "Duplicated finality signature")
 )
 
-var _ api.ConsumerController = &RollupBSNController{}
-
 // nolint:revive // Ignore stutter warning - full name provides clarity
 type RollupBSNController struct {
 	Cfg       *rollupfpconfig.RollupFPConfig
@@ -209,12 +207,15 @@ func (cc *RollupBSNController) SubmitBatchFinalitySigs(
 
 		msg := SubmitFinalitySignatureMsg{
 			SubmitFinalitySignature: SubmitFinalitySignatureMsgParams{
-				FpPubkeyHex: fpPkHex,
-				Height:      block.GetHeight(),
-				PubRand:     bbntypes.NewSchnorrPubRandFromFieldVal(req.PubRandList[i]).MustMarshal(),
-				Proof:       convertProof(cmtProof),
-				BlockHash:   block.GetHash(),
-				Signature:   bbntypes.NewSchnorrEOTSSigFromModNScalar(req.Sigs[i]).MustMarshal(),
+				FpPubkeyHex:    fpPkHex,
+				L1BlockNumber:  block.L1BlockNumber,
+				L1BlockHashHex: block.L1BlockHash.String(),
+				Height:         block.GetHeight(),
+				PubRand:        bbntypes.NewSchnorrPubRandFromFieldVal(req.PubRandList[i]).MustMarshal(),
+				Proof:          convertProof(cmtProof),
+				BlockHash:      block.GetHash(),
+				StateRoot:      block.StateRoot.StateRoot[:],
+				Signature:      bbntypes.NewSchnorrEOTSSigFromModNScalar(req.Sigs[i]).MustMarshal(),
 			},
 		}
 		payload, err := json.Marshal(msg)
@@ -404,7 +405,7 @@ func (cc *RollupBSNController) hasTimestampedPubRandomness(ctx context.Context, 
 // QueryLatestFinalizedBlock returns the finalized L2 block from a RPC call
 // NOTE: FP program cannot know if block is btc finalized or not, so it uses the last
 // block that is finalized by Ethereum, which is a stronger notion than BTC staking finalized
-func (cc *RollupBSNController) QueryLatestFinalizedBlock(ctx context.Context) (types.BlockDescription, error) {
+func (cc *RollupBSNController) QueryLatestFinalizedBlock(ctx context.Context) (*types.BlockInfo, error) {
 	l2Block, err := cc.ethClient.HeaderByNumber(ctx, big.NewInt(ethrpc.FinalizedBlockNumber.Int64()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get finalized block header: %w", err)
@@ -417,7 +418,7 @@ func (cc *RollupBSNController) QueryLatestFinalizedBlock(ctx context.Context) (t
 	return types.NewBlockInfo(l2Block.Number.Uint64(), l2Block.Hash().Bytes(), false), nil
 }
 
-func (cc *RollupBSNController) QueryBlocks(ctx context.Context, req *api.QueryBlocksRequest) ([]types.BlockDescription, error) {
+func (cc *RollupBSNController) QueryBlocks(ctx context.Context, req *api.QueryBlocksRequest) ([]types.BlockInfo, error) {
 	if req.StartHeight > req.EndHeight {
 		return nil, fmt.Errorf("the start height %v should not be higher than the end height %v", req.StartHeight, req.EndHeight)
 	}
@@ -452,9 +453,10 @@ func (cc *RollupBSNController) QueryBlocks(ctx context.Context, req *api.QueryBl
 	}
 
 	// convert to types.BlockInfo
-	var blocks []types.BlockDescription
+	var blocks []types.BlockInfo
 	for _, header := range blockHeaders {
-		blocks = append(blocks, types.NewBlockInfo(header.Number.Uint64(), header.Hash().Bytes(), false))
+		newBlockInfo := types.NewBlockInfo(header.Number.Uint64(), header.Hash().Bytes(), false)
+		blocks = append(blocks, *newBlockInfo)
 	}
 	cc.logger.Debug(
 		"Successfully batch query blocks",
@@ -468,7 +470,7 @@ func (cc *RollupBSNController) QueryBlocks(ctx context.Context, req *api.QueryBl
 }
 
 // QueryBlock returns the L2 block number and block hash with the given block number from a RPC call
-func (cc *RollupBSNController) QueryBlock(ctx context.Context, height uint64) (types.BlockDescription, error) {
+func (cc *RollupBSNController) QueryBlock(ctx context.Context, height uint64) (*types.BlockInfo, error) {
 	l2Block, err := cc.ethClient.HeaderByNumber(ctx, new(big.Int).SetUint64(height))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get block header by number: %w", err)
@@ -514,7 +516,7 @@ func (cc *RollupBSNController) QueryIsBlockFinalized(ctx context.Context, height
 }
 
 // QueryLatestBlockHeight gets the latest rollup block number from a RPC call
-func (cc *RollupBSNController) QueryLatestBlock(ctx context.Context) (types.BlockDescription, error) {
+func (cc *RollupBSNController) QueryLatestBlock(ctx context.Context) (*types.BlockInfo, error) {
 	l2LatestBlock, err := cc.ethClient.HeaderByNumber(ctx, big.NewInt(ethrpc.LatestBlockNumber.Int64()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get latest block header: %w", err)

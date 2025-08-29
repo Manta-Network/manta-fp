@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/Manta-Network/manta-fp/clientcontroller/babylon"
 	"sync"
 	"time"
 
@@ -27,8 +28,6 @@ const (
 	defaultBufferSize = 100
 )
 
-var _ types.BlockPoller[types.BlockDescription] = (*ChainPoller)(nil)
-
 // ChainPoller is responsible for polling the blockchain for new blocks and sending them to a processing channel.
 type ChainPoller struct {
 	mu sync.RWMutex
@@ -37,22 +36,22 @@ type ChainPoller struct {
 	isStarted *atomic.Bool
 	quit      chan struct{}
 
-	consumerCon ccapi.ConsumerController
+	consumerCon *babylon.BabylonConsumerController
 	cfg         *cfg.ChainPollerConfig
-	metrics     *metrics.FpMetrics
+	metrics     *metrics.BbnFpMetrics
 	logger      *zap.Logger
 
 	nextHeight uint64
 
-	blockChan     chan types.BlockDescription
+	blockChan     chan *types.BlockInfo
 	blockChanSize int
 }
 
 func NewChainPoller(
 	logger *zap.Logger,
 	cfg *cfg.ChainPollerConfig,
-	consumerCon ccapi.ConsumerController,
-	metrics *metrics.FpMetrics,
+	consumerCon *babylon.BabylonConsumerController,
+	metrics *metrics.BbnFpMetrics,
 ) *ChainPoller {
 	bufferSize := defaultBufferSize
 	if cfg.BufferSize > 0 {
@@ -66,13 +65,13 @@ func NewChainPoller(
 		consumerCon:   consumerCon,
 		metrics:       metrics,
 		quit:          make(chan struct{}),
-		blockChan:     make(chan types.BlockDescription, bufferSize),
+		blockChan:     make(chan *types.BlockInfo, bufferSize),
 		blockChanSize: bufferSize,
 	}
 }
 
 // TryNextBlock - non-blocking return of the next block
-func (cp *ChainPoller) TryNextBlock() (types.BlockDescription, bool) {
+func (cp *ChainPoller) TryNextBlock() (*types.BlockInfo, bool) {
 	if !cp.isStarted.Load() {
 		return nil, false
 	}
@@ -90,7 +89,7 @@ func (cp *ChainPoller) TryNextBlock() (types.BlockDescription, bool) {
 }
 
 // NextBlock - blocking version that waits for the next block
-func (cp *ChainPoller) NextBlock(ctx context.Context) (types.BlockDescription, error) {
+func (cp *ChainPoller) NextBlock(ctx context.Context) (*types.BlockInfo, error) {
 	if !cp.isStarted.Load() {
 		return nil, fmt.Errorf("chain poller is not running")
 	}
@@ -122,7 +121,7 @@ func (cp *ChainPoller) SetStartHeight(ctx context.Context, height uint64) error 
 	cp.mu.Lock()
 	cp.nextHeight = height
 	cp.quit = make(chan struct{})
-	cp.blockChan = make(chan types.BlockDescription, cp.blockChanSize)
+	cp.blockChan = make(chan *types.BlockInfo, cp.blockChanSize)
 	cp.mu.Unlock()
 
 	cp.wg.Add(1)
@@ -254,7 +253,7 @@ func (cp *ChainPoller) pollCycle(ctx context.Context) error {
 // It handles cases where the block range starts beyond the latest height, matches the latest height, or spans multiple heights.
 // If the poller or context is terminated, it ensures proper cleanup and error handling.
 func (cp *ChainPoller) tryPollChain(ctx context.Context, latestBlockHeight, blockToRetrieve uint64) error {
-	var blocks []types.BlockDescription
+	var blocks []*types.BlockInfo
 	var err error
 
 	switch {
@@ -266,12 +265,12 @@ func (cp *ChainPoller) tryPollChain(ctx context.Context, latestBlockHeight, bloc
 		return nil
 
 	case blockToRetrieve == latestBlockHeight:
-		var latestBlock types.BlockDescription
+		var latestBlock *types.BlockInfo
 		latestBlock, err = cp.consumerCon.QueryBlock(ctx, latestBlockHeight)
 		if err != nil {
 			return fmt.Errorf("failed to query latest block: %w", err)
 		}
-		blocks = []types.BlockDescription{latestBlock}
+		blocks = []*types.BlockInfo{latestBlock}
 
 	default:
 		blocks, err = cp.blocksWithRetry(ctx, blockToRetrieve, latestBlockHeight, cp.cfg.PollSize)
@@ -339,8 +338,8 @@ func (cp *ChainPoller) setNextHeight(height uint64) {
 }
 
 // Retry helper methods remain the same
-func (cp *ChainPoller) blocksWithRetry(ctx context.Context, start, end uint64, limit uint32) ([]types.BlockDescription, error) {
-	var blocks []types.BlockDescription
+func (cp *ChainPoller) blocksWithRetry(ctx context.Context, start, end uint64, limit uint32) ([]*types.BlockInfo, error) {
+	var blocks []*types.BlockInfo
 	var err error
 
 	retryErr := retry.Do(func() error {
@@ -374,7 +373,7 @@ func (cp *ChainPoller) blocksWithRetry(ctx context.Context, start, end uint64, l
 }
 
 func (cp *ChainPoller) latestBlockHeightWithRetry(ctx context.Context) (uint64, error) {
-	var latestBlock types.BlockDescription
+	var latestBlock *types.BlockInfo
 	var err error
 
 	retryErr := retry.Do(func() error {

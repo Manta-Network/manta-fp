@@ -70,7 +70,7 @@ func runStartCmd(ctx client.Context, cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("failed to create db backend: %w", err)
 	}
 
-	fpApp, err := rollupservice.NewRollupBSNFinalityProviderAppFromConfig(cfg, dbBackend, logger)
+	fpApp, err := rollupservice.NewRollupBSNFinalityProviderAppFromConfig(cfg, dbBackend, logger, fpStr)
 	if err != nil {
 		return fmt.Errorf("failed to create finality-provider app: %w", err)
 	}

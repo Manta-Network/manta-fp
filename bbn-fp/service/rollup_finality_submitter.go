@@ -31,7 +31,7 @@ func NewRollupFinalitySubmitter(
 	proofListGetterFunc service.PubRandProofListGetterFunc,
 	cfg *service.FinalitySubmitterConfig,
 	logger *zap.Logger,
-	metrics *metrics.FpMetrics,
+	metrics *metrics.BbnFpMetrics,
 	interval uint64,
 ) *RollupFinalitySubmitter {
 	return &RollupFinalitySubmitter{
@@ -59,7 +59,7 @@ func (rfs *RollupFinalitySubmitter) GetPubRandList(startHeight uint64, numPubRan
 
 // SubmitBatchFinalitySignatures overrides the default implementation to ensure
 // our sparse GetPubRandList method is called throughout the submission process
-func (rfs *RollupFinalitySubmitter) SubmitBatchFinalitySignatures(ctx context.Context, blocks []types.BlockDescription) (*types.TxResponse, error) {
+func (rfs *RollupFinalitySubmitter) SubmitBatchFinalitySignatures(ctx context.Context, blocks []types.BlockInfo) (*types.TxResponse, error) {
 	if len(blocks) == 0 {
 		return nil, fmt.Errorf("cannot send signatures for empty blocks")
 	}
@@ -144,7 +144,7 @@ func (rfs *RollupFinalitySubmitter) SubmitBatchFinalitySignatures(ctx context.Co
 }
 
 // submitBatchFinalitySignaturesOnce overrides to ensure our GetPubRandList method is called
-func (rfs *RollupFinalitySubmitter) submitBatchFinalitySignaturesOnce(ctx context.Context, blocks []types.BlockDescription) (*types.TxResponse, error) {
+func (rfs *RollupFinalitySubmitter) submitBatchFinalitySignaturesOnce(ctx context.Context, blocks []types.BlockInfo) (*types.TxResponse, error) {
 	if len(blocks) == 0 {
 		return nil, fmt.Errorf("should not submit batch finality signature with zero block")
 	}
@@ -174,7 +174,7 @@ func (rfs *RollupFinalitySubmitter) submitBatchFinalitySignaturesOnce(ctx contex
 	}
 
 	// Process each block and collect only valid items
-	var validBlocks []types.BlockDescription
+	var validBlocks []types.BlockInfo
 	var validPrList []*btcec.FieldVal
 	var validProofList [][]byte
 	var validSigList []*btcec.ModNScalar

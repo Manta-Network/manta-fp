@@ -36,13 +36,14 @@ type FinalityProviderApp struct {
 	quit      chan struct{}
 
 	cc                ccapi.BabylonController
-	consumerCon       ccapi.ConsumerController
+	consumerCon       *babylon.BabylonConsumerController
 	kr                keyring.Keyring
 	fps               *store.FinalityProviderStore
 	pubRandStore      *store.PubRandProofStore
 	config            *fpcfg.Config
 	logger            *zap.Logger
 	poller            types.BlockPoller[types.BlockDescription]
+	opPoller          *OpChainPoller
 	rndCommitter      types.RandomnessCommitter
 	heightDeterminer  types.HeightDeterminer
 	finalitySubmitter types.FinalitySignatureSubmitter
@@ -51,7 +52,7 @@ type FinalityProviderApp struct {
 	fpIns       *FinalityProviderInstance
 	eotsManager eotsmanager.EOTSManager
 
-	metrics *metrics.FpMetrics
+	metrics *metrics.BbnFpMetrics
 
 	createFinalityProviderRequestChan chan *CreateFinalityProviderRequest
 	unjailFinalityProviderRequestChan chan *UnjailFinalityProviderRequest
@@ -116,14 +117,14 @@ func NewFinalityProviderAppFromConfig(
 
 func NewFinalityProviderApp(
 	config *fpcfg.Config,
-	cc ccapi.BabylonController,
+	cc *babylon.BabylonConsumerController,
 	consumerCon ccapi.ConsumerController,
 	em eotsmanager.EOTSManager,
 	poller types.BlockPoller[types.BlockDescription],
 	rndCommitter types.RandomnessCommitter,
 	heightDeterminer types.HeightDeterminer,
 	finalitySubmitter types.FinalitySignatureSubmitter,
-	metrics *metrics.FpMetrics,
+	metrics *metrics.BbnFpMetrics,
 	db kvdb.Backend,
 	logger *zap.Logger,
 ) (*FinalityProviderApp, error) {
@@ -155,6 +156,58 @@ func NewFinalityProviderApp(
 		logger:                            logger,
 		eotsManager:                       em,
 		poller:                            poller,
+		rndCommitter:                      rndCommitter,
+		heightDeterminer:                  heightDeterminer,
+		finalitySubmitter:                 finalitySubmitter,
+		metrics:                           metrics,
+		unjailFinalityProviderRequestChan: make(chan *UnjailFinalityProviderRequest),
+		createFinalityProviderRequestChan: make(chan *CreateFinalityProviderRequest),
+		criticalErrChan:                   make(chan *CriticalError),
+		quit:                              make(chan struct{}),
+	}, nil
+}
+
+func NewBsnFinalityProviderApp(
+	config *fpcfg.Config,
+	cc ccapi.BabylonController,
+	consumerCon ccapi.ConsumerController,
+	em eotsmanager.EOTSManager,
+	poller *OpChainPoller,
+	rndCommitter types.RandomnessCommitter,
+	heightDeterminer types.HeightDeterminer,
+	finalitySubmitter types.FinalitySignatureSubmitter,
+	metrics *metrics.BbnFpMetrics,
+	db kvdb.Backend,
+	logger *zap.Logger,
+) (*FinalityProviderApp, error) {
+	fpStore, err := store.NewFinalityProviderStore(db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate finality provider store: %w", err)
+	}
+	pubRandStore, err := store.NewPubRandProofStore(db)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initiate public randomness store: %w", err)
+	}
+
+	kr, err := fpkr.CreateKeyring(
+		config.BabylonConfig.KeyDirectory,
+		config.BabylonConfig.ChainID,
+		config.BabylonConfig.KeyringBackend,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create keyring: %w", err)
+	}
+
+	return &FinalityProviderApp{
+		cc:                                cc,
+		consumerCon:                       consumerCon,
+		fps:                               fpStore,
+		pubRandStore:                      pubRandStore,
+		kr:                                kr,
+		config:                            config,
+		logger:                            logger,
+		eotsManager:                       em,
+		opPoller:                          poller,
 		rndCommitter:                      rndCommitter,
 		heightDeterminer:                  heightDeterminer,
 		finalitySubmitter:                 finalitySubmitter,
@@ -569,7 +622,7 @@ func (app *FinalityProviderApp) startFinalityProviderInstance(
 	if app.fpIns == nil {
 		fpIns, err := NewFinalityProviderInstance(
 			pk, app.config, app.fps, app.pubRandStore, app.cc, app.consumerCon,
-			app.eotsManager, app.poller, app.rndCommitter, app.heightDeterminer, app.finalitySubmitter,
+			app.eotsManager, app.opPoller, app.rndCommitter, app.heightDeterminer, app.finalitySubmitter,
 			app.metrics, app.criticalErrChan, app.logger,
 		)
 		if err != nil {

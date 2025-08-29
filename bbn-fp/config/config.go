@@ -23,6 +23,8 @@ type RollupFPConfig struct {
 
 	// Below configurations are needed for the Babylon client
 	Common *fpcfg.Config
+
+	OpEventConfig *OpEventConfig `group:"opeventconfig" namespace:"opeventconfig"`
 }
 
 func (cfg *RollupFPConfig) Validate() error {
@@ -82,10 +84,11 @@ func LoadConfig(homePath string) (*RollupFPConfig, error) {
 
 func DefaultConfigWithHome(homePath string) RollupFPConfig {
 	cfg := fpcfg.DefaultConfigWithHome(homePath)
-
+	opEventConfig := DefaultOpEventConfig()
 	return RollupFPConfig{
 		Common: &cfg,
 		// TODO: default values for the rollup-fpd config
+		OpEventConfig: &opEventConfig,
 	}
 }
 

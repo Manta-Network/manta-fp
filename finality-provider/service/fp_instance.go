@@ -32,11 +32,11 @@ type FinalityProviderInstance struct {
 	em                eotsmanager.EOTSManager
 	cc                ccapi.BabylonController
 	consumerCon       ccapi.ConsumerController
-	poller            types.BlockPoller[types.BlockDescription]
+	poller            *OpChainPoller
 	rndCommitter      types.RandomnessCommitter
 	heightDeterminer  types.HeightDeterminer
 	finalitySubmitter types.FinalitySignatureSubmitter
-	metrics           *metrics.FpMetrics
+	metrics           *metrics.BbnFpMetrics
 
 	criticalErrChan chan<- *CriticalError
 
@@ -55,11 +55,11 @@ func NewFinalityProviderInstance(
 	cc ccapi.BabylonController,
 	consumerCon ccapi.ConsumerController,
 	em eotsmanager.EOTSManager,
-	poller types.BlockPoller[types.BlockDescription],
+	poller *OpChainPoller,
 	rndCommitter types.RandomnessCommitter,
 	heightDeterminer types.HeightDeterminer,
 	finalitySubmitter types.FinalitySignatureSubmitter,
-	metrics *metrics.FpMetrics,
+	metrics *metrics.BbnFpMetrics,
 	errChan chan<- *CriticalError,
 	logger *zap.Logger,
 ) (*FinalityProviderInstance, error) {
@@ -99,11 +99,11 @@ func newFinalityProviderInstanceFromStore(
 	cc ccapi.BabylonController,
 	consumerCon ccapi.ConsumerController,
 	em eotsmanager.EOTSManager,
-	poller types.BlockPoller[types.BlockDescription],
+	poller *OpChainPoller,
 	rndCommitter types.RandomnessCommitter,
 	heightDeterminer types.HeightDeterminer,
 	finalitySubmitter types.FinalitySignatureSubmitter,
-	metrics *metrics.FpMetrics,
+	metrics *metrics.BbnFpMetrics,
 	errChan chan<- *CriticalError,
 	logger *zap.Logger,
 ) (*FinalityProviderInstance, error) {
@@ -146,16 +146,11 @@ func (fp *FinalityProviderInstance) Start(ctx context.Context) error {
 			zap.String("pk", fp.GetBtcPkHex()))
 	}
 
-	startHeight, err := fp.DetermineStartHeight(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get the start height: %w", err)
-	}
-
 	fp.logger.Info("starting the finality provider instance",
-		zap.String("pk", fp.GetBtcPkHex()), zap.Uint64("height", startHeight))
+		zap.String("pk", fp.GetBtcPkHex()), zap.Uint64("height", fp.poller.latestBlock.Uint64()))
 
-	if err := fp.poller.SetStartHeight(ctx, startHeight); err != nil {
-		return fmt.Errorf("failed to start the poller with start height %d: %w", startHeight, err)
+	if err := fp.poller.Start(); err != nil {
+		return fmt.Errorf("failed to start the poller with start height %d: %w", fp.poller.latestBlock.Uint64(), err)
 	}
 
 	fp.quit = make(chan struct{})
@@ -303,18 +298,21 @@ func (fp *FinalityProviderInstance) processAndSubmitSignatures(ctx context.Conte
 }
 
 // getBatchBlocksFromPoller retrieves a batch of blocks from the poller, limited by the configured batch size.
-func (fp *FinalityProviderInstance) getBatchBlocksFromPoller() []types.BlockDescription {
-	var pollerBlocks []types.BlockDescription
+func (fp *FinalityProviderInstance) getBatchBlocksFromPoller() []types.BlockInfo {
+	var pollerBlocks []types.BlockInfo
 
 	for {
-		block, hasBlock := fp.poller.TryNextBlock()
-		if !hasBlock {
-			// No more blocks immediately available, return what we have
-			return pollerBlocks
-		}
+		select {
+		case b := <-fp.poller.GetBlockInfoChan():
+			pollerBlocks = append(pollerBlocks, *b)
 
-		pollerBlocks = append(pollerBlocks, block)
-		if len(pollerBlocks) == int(fp.cfg.BatchSubmissionSize) {
+			if len(pollerBlocks) == int(fp.cfg.BatchSubmissionSize) {
+				return pollerBlocks
+			}
+		case <-fp.quit:
+			fp.logger.Info("the get all blocks loop is closing")
+			return nil
+		default:
 			return pollerBlocks
 		}
 	}

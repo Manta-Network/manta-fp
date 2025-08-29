@@ -55,7 +55,7 @@ type EditFinalityProviderRequest struct {
 
 type ConsumerController interface {
 	RandomnessCommitter
-	BlockQuerier[types.BlockDescription]
+	BlockQuerier[types.BlockInfo]
 	FinalityOperator
 
 	Close() error
@@ -73,7 +73,7 @@ type RandomnessCommitter interface {
 	QueryLastPublicRandCommit(ctx context.Context, fpPk *btcec.PublicKey) (types.PubRandCommit, error)
 }
 
-type BlockQuerier[T types.BlockDescription] interface {
+type BlockQuerier[T types.BlockInfo] interface {
 	// QueryLatestFinalizedBlock returns the latest finalized block
 	QueryLatestFinalizedBlock(ctx context.Context) (T, error)
 
@@ -116,7 +116,7 @@ type FinalityOperator interface {
 
 type SubmitBatchFinalitySigsRequest struct {
 	FpPk        *btcec.PublicKey
-	Blocks      []types.BlockDescription
+	Blocks      []types.BlockInfo
 	PubRandList []*btcec.FieldVal
 	ProofList   [][]byte
 	Sigs        []*btcec.ModNScalar
@@ -148,7 +148,7 @@ type QueryFinalityProviderHasPowerRequest struct {
 
 func NewSubmitBatchFinalitySigsRequest(
 	fpPk *btcec.PublicKey,
-	blocks []types.BlockDescription,
+	blocks []types.BlockInfo,
 	pubRandList []*btcec.FieldVal,
 	proofList [][]byte,
 	sigs []*btcec.ModNScalar,

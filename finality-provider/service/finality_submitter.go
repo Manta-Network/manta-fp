@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/Manta-Network/manta-fp/clientcontroller/babylon"
 	"math"
 	"strings"
 	"time"
@@ -28,11 +29,11 @@ type PubRandProofListGetterFunc func(startHeight uint64, numPubRand uint64) ([][
 type DefaultFinalitySubmitter struct {
 	State               types.FinalityProviderState
 	Em                  eotsmanager.EOTSManager
-	ConsumerCtrl        api.ConsumerController
+	ConsumerCtrl        *babylon.BabylonConsumerController
 	ProofListGetterFunc PubRandProofListGetterFunc
 	Cfg                 *FinalitySubmitterConfig
 	Logger              *zap.Logger
-	Metrics             *metrics.FpMetrics
+	Metrics             *metrics.BbnFpMetrics
 }
 
 type FinalitySubmitterConfig struct {
@@ -54,12 +55,12 @@ func NewDefaultFinalitySubmitterConfig(
 }
 
 func NewDefaultFinalitySubmitter(
-	consumerCtrl api.ConsumerController,
+	consumerCtrl *babylon.BabylonConsumerController,
 	em eotsmanager.EOTSManager,
 	proofListGetterFunc PubRandProofListGetterFunc,
 	cfg *FinalitySubmitterConfig,
 	logger *zap.Logger,
-	metrics *metrics.FpMetrics) *DefaultFinalitySubmitter {
+	metrics *metrics.BbnFpMetrics) *DefaultFinalitySubmitter {
 	return &DefaultFinalitySubmitter{
 		Em:                  em,
 		ConsumerCtrl:        consumerCtrl,
@@ -108,8 +109,8 @@ func (ds *DefaultFinalitySubmitter) InitState(state types.FinalityProviderState)
 }
 
 // FilterBlocksForVoting filters blocks based on the finality provider's voting power and height criteria for submission, returning a slice of blocks eligible for voting and an error if any issues are encountered during processing. It also updates the finality provider instance status according to the block's voting power.
-func (ds *DefaultFinalitySubmitter) FilterBlocksForVoting(ctx context.Context, blocks []types.BlockDescription) ([]types.BlockDescription, error) {
-	processedBlocks := make([]types.BlockDescription, 0, len(blocks))
+func (ds *DefaultFinalitySubmitter) FilterBlocksForVoting(ctx context.Context, blocks []types.BlockInfo) ([]types.BlockInfo, error) {
+	processedBlocks := make([]types.BlockInfo, 0, len(blocks))
 
 	var hasPower bool
 	var err error
@@ -170,7 +171,7 @@ func (ds *DefaultFinalitySubmitter) FilterBlocksForVoting(ctx context.Context, b
 // Contract:
 //  1. the input blocks should be in the ascending order of height
 //  2. the returned response could be nil due to no transactions might be made in the end
-func (ds *DefaultFinalitySubmitter) SubmitBatchFinalitySignatures(ctx context.Context, blocks []types.BlockDescription) (*types.TxResponse, error) {
+func (ds *DefaultFinalitySubmitter) SubmitBatchFinalitySignatures(ctx context.Context, blocks []types.BlockInfo) (*types.TxResponse, error) {
 	if len(blocks) == 0 {
 		return nil, fmt.Errorf("cannot send signatures for empty blocks")
 	}
@@ -255,7 +256,7 @@ func (ds *DefaultFinalitySubmitter) SubmitBatchFinalitySignatures(ctx context.Co
 }
 
 // submitBatchFinalitySignaturesOnce performs a single submission attempt (original SubmitBatchFinalitySignatures logic)
-func (ds *DefaultFinalitySubmitter) submitBatchFinalitySignaturesOnce(ctx context.Context, blocks []types.BlockDescription) (*types.TxResponse, error) {
+func (ds *DefaultFinalitySubmitter) submitBatchFinalitySignaturesOnce(ctx context.Context, blocks []types.BlockInfo) (*types.TxResponse, error) {
 	if len(blocks) == 0 {
 		return nil, fmt.Errorf("should not submit batch finality signature with zero block")
 	}
@@ -289,7 +290,7 @@ func (ds *DefaultFinalitySubmitter) submitBatchFinalitySignaturesOnce(ctx contex
 	}
 
 	// Create slices to store only the valid items
-	validBlocks := make([]types.BlockDescription, 0, len(blocks))
+	validBlocks := make([]types.BlockInfo, 0, len(blocks))
 	validPrList := make([]*btcec.FieldVal, 0, len(blocks))
 	validProofList := make([][]byte, 0, len(blocks))
 	validSigList := make([]*btcec.ModNScalar, 0, len(blocks))
@@ -366,14 +367,14 @@ func (ds *DefaultFinalitySubmitter) CheckBlockFinalization(ctx context.Context, 
 	return b.IsFinalized(), nil
 }
 
-func (ds *DefaultFinalitySubmitter) SignFinalitySig(b types.BlockDescription) (*bbntypes.SchnorrEOTSSig, error) {
+func (ds *DefaultFinalitySubmitter) SignFinalitySig(b types.BlockInfo) (*bbntypes.SchnorrEOTSSig, error) {
 	// build proper finality signature request
 	var msgToSign []byte
 	if b.GetHeight() >= ds.Cfg.ContextSigningHeight {
 		signCtx := ds.ConsumerCtrl.GetFpFinVoteContext()
-		msgToSign = b.MsgToSign(signCtx)
+		msgToSign = b.MsgToSign(signCtx, b.StateRoot.StateRoot[:])
 	} else {
-		msgToSign = b.MsgToSign("")
+		msgToSign = b.MsgToSign("", []byte{})
 	}
 
 	sig, err := ds.Em.SignEOTS(ds.GetBtcPkBIP340().MustMarshal(), ds.State.GetChainID(), msgToSign, b.GetHeight())

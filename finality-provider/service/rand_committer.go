@@ -51,7 +51,7 @@ type DefaultRandomnessCommitter struct {
 	ConsumerCon  ccapi.ConsumerController
 	Em           eotsmanager.EOTSManager
 	Logger       *zap.Logger
-	Metrics      *metrics.FpMetrics
+	Metrics      *metrics.BbnFpMetrics
 }
 
 func NewDefaultRandomnessCommitter(
@@ -60,7 +60,7 @@ func NewDefaultRandomnessCommitter(
 	consumerCon ccapi.ConsumerController,
 	em eotsmanager.EOTSManager,
 	logger *zap.Logger,
-	metrics *metrics.FpMetrics,
+	metrics *metrics.BbnFpMetrics,
 ) *DefaultRandomnessCommitter {
 	return &DefaultRandomnessCommitter{
 		Cfg:          cfg,

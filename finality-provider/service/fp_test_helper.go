@@ -191,7 +191,7 @@ func (th *FinalityProviderTestHelper) GetFinalityProviderInstance() *FinalityPro
 	return th.fp
 }
 
-func (th *FinalityProviderTestHelper) SubmitBatchFinalitySignatures(t *testing.T, blocks []types.BlockDescription) (*types.TxResponse, error) {
+func (th *FinalityProviderTestHelper) SubmitBatchFinalitySignatures(t *testing.T, blocks []types.BlockInfo) (*types.TxResponse, error) {
 	t.Helper()
 
 	res, err := th.fp.finalitySubmitter.SubmitBatchFinalitySignatures(t.Context(), blocks)

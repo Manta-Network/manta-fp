@@ -6,8 +6,6 @@ import (
 	"math/big"
 )
 
-var _ BlockDescription = (*BlockInfo)(nil)
-
 type Block struct {
 	Hash       common.Hash `json:"hash"`
 	ParentHash common.Hash `json:"parent_hash"`
@@ -60,10 +58,10 @@ func (b BlockInfo) IsFinalized() bool {
 	return b.Finalized
 }
 
-func (b BlockInfo) MsgToSign(signCtx string) []byte {
+func (b BlockInfo) MsgToSign(signCtx string, stateRoot []byte) []byte {
 	if len(signCtx) == 0 {
-		return append(sdk.Uint64ToBigEndian(b.Height), b.Hash...)
+		return append(sdk.Uint64ToBigEndian(b.Height), stateRoot...)
 	}
 
-	return append([]byte(signCtx), append(sdk.Uint64ToBigEndian(b.Height), b.Hash...)...)
+	return append([]byte(signCtx), append(sdk.Uint64ToBigEndian(b.Height), stateRoot...)...)
 }

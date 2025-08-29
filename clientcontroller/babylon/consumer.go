@@ -23,8 +23,6 @@ import (
 	"github.com/Manta-Network/manta-fp/types"
 )
 
-var _ api.ConsumerController = &BabylonConsumerController{}
-
 // BabylonPubRandCommit represents the Babylon-specific public randomness commitment response
 //
 //nolint:revive
@@ -235,7 +233,7 @@ func (bc *BabylonConsumerController) QueryFinalityProviderHasPower(
 	return res.VotingPower > 0, nil
 }
 
-func (bc *BabylonConsumerController) QueryLatestFinalizedBlock(_ context.Context) (types.BlockDescription, error) {
+func (bc *BabylonConsumerController) QueryLatestFinalizedBlock(_ context.Context) (*types.BlockInfo, error) {
 	blocks, err := bc.queryLatestBlocks(nil, 1, finalitytypes.QueriedBlockStatus_FINALIZED, true)
 	if blocks == nil {
 		return nil, err
@@ -244,7 +242,7 @@ func (bc *BabylonConsumerController) QueryLatestFinalizedBlock(_ context.Context
 	return blocks[0], nil
 }
 
-func (bc *BabylonConsumerController) QueryBlocks(_ context.Context, req *api.QueryBlocksRequest) ([]types.BlockDescription, error) {
+func (bc *BabylonConsumerController) QueryBlocks(_ context.Context, req *api.QueryBlocksRequest) ([]*types.BlockInfo, error) {
 	if req.EndHeight < req.StartHeight {
 		return nil, fmt.Errorf("the startHeight %v should not be higher than the endHeight %v", req.StartHeight, req.EndHeight)
 	}
@@ -256,8 +254,8 @@ func (bc *BabylonConsumerController) QueryBlocks(_ context.Context, req *api.Que
 	return bc.queryLatestBlocks(sdk.Uint64ToBigEndian(req.StartHeight), count, finalitytypes.QueriedBlockStatus_ANY, false)
 }
 
-func (bc *BabylonConsumerController) queryLatestBlocks(startKey []byte, count uint64, status finalitytypes.QueriedBlockStatus, reverse bool) ([]types.BlockDescription, error) {
-	var blocks []types.BlockDescription
+func (bc *BabylonConsumerController) queryLatestBlocks(startKey []byte, count uint64, status finalitytypes.QueriedBlockStatus, reverse bool) ([]*types.BlockInfo, error) {
+	var blocks []*types.BlockInfo
 	pagination := &sdkquery.PageRequest{
 		Limit:   count,
 		Reverse: reverse,
@@ -276,7 +274,7 @@ func (bc *BabylonConsumerController) queryLatestBlocks(startKey []byte, count ui
 	return blocks, nil
 }
 
-func (bc *BabylonConsumerController) QueryBlock(_ context.Context, height uint64) (types.BlockDescription, error) {
+func (bc *BabylonConsumerController) QueryBlock(_ context.Context, height uint64) (*types.BlockInfo, error) {
 	res, err := bc.bbnClient.Block(height)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query indexed block at height %v: %w", height, err)
@@ -358,7 +356,7 @@ func (bc *BabylonConsumerController) QueryFinalityProviderHighestVotedHeight(_ c
 	return uint64(res.FinalityProvider.HighestVotedHeight), nil
 }
 
-func (bc *BabylonConsumerController) QueryLatestBlock(ctx context.Context) (types.BlockDescription, error) {
+func (bc *BabylonConsumerController) QueryLatestBlock(ctx context.Context) (*types.BlockInfo, error) {
 	blocks, err := bc.queryLatestBlocks(nil, 1, finalitytypes.QueriedBlockStatus_ANY, true)
 	if err != nil || len(blocks) != 1 {
 		// try query comet block if the index block query is not available

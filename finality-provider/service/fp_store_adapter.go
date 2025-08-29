@@ -20,7 +20,7 @@ type FpState struct {
 	mu      sync.Mutex
 	sfp     *store.StoredFinalityProvider
 	s       *store.FinalityProviderStore
-	metrics *metrics.FpMetrics
+	metrics *metrics.BbnFpMetrics
 	logger  *zap.Logger
 }
 
@@ -28,7 +28,7 @@ func NewFpState(
 	fp *store.StoredFinalityProvider,
 	s *store.FinalityProviderStore,
 	logger *zap.Logger,
-	metrics *metrics.FpMetrics,
+	metrics *metrics.BbnFpMetrics,
 ) *FpState {
 	return &FpState{
 		sfp:     fp,
