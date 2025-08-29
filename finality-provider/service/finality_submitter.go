@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/Manta-Network/manta-fp/clientcontroller/babylon"
 	"math"
 	"strings"
 	"time"
@@ -29,7 +28,7 @@ type PubRandProofListGetterFunc func(startHeight uint64, numPubRand uint64) ([][
 type DefaultFinalitySubmitter struct {
 	State               types.FinalityProviderState
 	Em                  eotsmanager.EOTSManager
-	ConsumerCtrl        *babylon.BabylonConsumerController
+	ConsumerCtrl        api.ConsumerController
 	ProofListGetterFunc PubRandProofListGetterFunc
 	Cfg                 *FinalitySubmitterConfig
 	Logger              *zap.Logger
@@ -55,7 +54,7 @@ func NewDefaultFinalitySubmitterConfig(
 }
 
 func NewDefaultFinalitySubmitter(
-	consumerCtrl *babylon.BabylonConsumerController,
+	consumerCtrl api.ConsumerController,
 	em eotsmanager.EOTSManager,
 	proofListGetterFunc PubRandProofListGetterFunc,
 	cfg *FinalitySubmitterConfig,
@@ -372,9 +371,9 @@ func (ds *DefaultFinalitySubmitter) SignFinalitySig(b types.BlockInfo) (*bbntype
 	var msgToSign []byte
 	if b.GetHeight() >= ds.Cfg.ContextSigningHeight {
 		signCtx := ds.ConsumerCtrl.GetFpFinVoteContext()
-		msgToSign = b.MsgToSign(signCtx, b.StateRoot.StateRoot[:])
+		msgToSign = b.MsgToSignWithStateRoot(signCtx, b.StateRoot.StateRoot[:])
 	} else {
-		msgToSign = b.MsgToSign("", []byte{})
+		msgToSign = b.MsgToSign("")
 	}
 
 	sig, err := ds.Em.SignEOTS(ds.GetBtcPkBIP340().MustMarshal(), ds.State.GetChainID(), msgToSign, b.GetHeight())

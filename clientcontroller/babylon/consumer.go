@@ -233,16 +233,16 @@ func (bc *BabylonConsumerController) QueryFinalityProviderHasPower(
 	return res.VotingPower > 0, nil
 }
 
-func (bc *BabylonConsumerController) QueryLatestFinalizedBlock(_ context.Context) (*types.BlockInfo, error) {
+func (bc *BabylonConsumerController) QueryLatestFinalizedBlock(_ context.Context) (types.BlockInfo, error) {
 	blocks, err := bc.queryLatestBlocks(nil, 1, finalitytypes.QueriedBlockStatus_FINALIZED, true)
 	if blocks == nil {
-		return nil, err
+		return types.BlockInfo{}, err
 	}
 
-	return blocks[0], nil
+	return *blocks[0], nil
 }
 
-func (bc *BabylonConsumerController) QueryBlocks(_ context.Context, req *api.QueryBlocksRequest) ([]*types.BlockInfo, error) {
+func (bc *BabylonConsumerController) QueryBlocks(_ context.Context, req *api.QueryBlocksRequest) ([]types.BlockInfo, error) {
 	if req.EndHeight < req.StartHeight {
 		return nil, fmt.Errorf("the startHeight %v should not be higher than the endHeight %v", req.StartHeight, req.EndHeight)
 	}
@@ -251,7 +251,17 @@ func (bc *BabylonConsumerController) QueryBlocks(_ context.Context, req *api.Que
 		count = uint64(req.Limit)
 	}
 
-	return bc.queryLatestBlocks(sdk.Uint64ToBigEndian(req.StartHeight), count, finalitytypes.QueriedBlockStatus_ANY, false)
+	blocks, err := bc.queryLatestBlocks(sdk.Uint64ToBigEndian(req.StartHeight), count, finalitytypes.QueriedBlockStatus_ANY, false)
+	if err != nil {
+		return nil, err
+	}
+
+	var result []types.BlockInfo
+	for _, block := range blocks {
+		result = append(result, *block)
+	}
+
+	return result, nil
 }
 
 func (bc *BabylonConsumerController) queryLatestBlocks(startKey []byte, count uint64, status finalitytypes.QueriedBlockStatus, reverse bool) ([]*types.BlockInfo, error) {
@@ -274,13 +284,13 @@ func (bc *BabylonConsumerController) queryLatestBlocks(startKey []byte, count ui
 	return blocks, nil
 }
 
-func (bc *BabylonConsumerController) QueryBlock(_ context.Context, height uint64) (*types.BlockInfo, error) {
+func (bc *BabylonConsumerController) QueryBlock(_ context.Context, height uint64) (types.BlockInfo, error) {
 	res, err := bc.bbnClient.Block(height)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query indexed block at height %v: %w", height, err)
+		return types.BlockInfo{}, fmt.Errorf("failed to query indexed block at height %v: %w", height, err)
 	}
 
-	return types.NewBlockInfo(height, res.Block.AppHash, res.Block.Finalized), nil
+	return *types.NewBlockInfo(height, res.Block.AppHash, res.Block.Finalized), nil
 }
 
 // QueryLastPublicRandCommit returns the last public randomness commitments
@@ -356,19 +366,19 @@ func (bc *BabylonConsumerController) QueryFinalityProviderHighestVotedHeight(_ c
 	return uint64(res.FinalityProvider.HighestVotedHeight), nil
 }
 
-func (bc *BabylonConsumerController) QueryLatestBlock(ctx context.Context) (*types.BlockInfo, error) {
+func (bc *BabylonConsumerController) QueryLatestBlock(ctx context.Context) (types.BlockInfo, error) {
 	blocks, err := bc.queryLatestBlocks(nil, 1, finalitytypes.QueriedBlockStatus_ANY, true)
 	if err != nil || len(blocks) != 1 {
 		// try query comet block if the index block query is not available
 		block, err := bc.queryCometBestBlock(ctx)
 		if err != nil {
-			return nil, err
+			return types.BlockInfo{}, err
 		}
 
-		return block, nil
+		return *block, nil
 	}
 
-	return blocks[0], nil
+	return *blocks[0], nil
 }
 
 func (bc *BabylonConsumerController) queryCometBestBlock(ctx context.Context) (*types.BlockInfo, error) {

@@ -147,10 +147,6 @@ func (bt *StartHeightDeterminer) latestFinalizedHeightWithRetry(ctx context.Cont
 		if err != nil {
 			return fmt.Errorf("failed to query the latest finalized height: %w", err)
 		}
-		if block == nil {
-			// no finalized block yet
-			return nil
-		}
 		height = block.GetHeight()
 
 		return nil

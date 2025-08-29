@@ -94,7 +94,7 @@ func GenValidSlashingRate(r *rand.Rand) sdkmath.LegacyDec {
 func GenBlocksDesc(r *rand.Rand, startHeight, endHeight uint64) []types.BlockDescription {
 	blocks := make([]types.BlockDescription, 0)
 	for i := startHeight; i <= endHeight; i++ {
-		blocks = append(blocks, types.NewBlockInfo(i, datagen.GenRandomByteArray(r, 32), false))
+		blocks = append(blocks, *types.NewBlockInfo(i, datagen.GenRandomByteArray(r, 32), false))
 	}
 
 	return blocks

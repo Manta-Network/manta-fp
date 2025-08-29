@@ -3,9 +3,10 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/Manta-Network/manta-fp/clientcontroller/babylon"
 	"sync"
 	"time"
+
+	"github.com/Manta-Network/manta-fp/clientcontroller/babylon"
 
 	ccapi "github.com/Manta-Network/manta-fp/clientcontroller/api"
 	cfg "github.com/Manta-Network/manta-fp/finality-provider/config"
@@ -27,6 +28,9 @@ const (
 	maxFailedCycles   = 20
 	defaultBufferSize = 100
 )
+
+// Ensure ChainPoller implements the required interfaces
+var _ types.BlockPoller[types.BlockDescription] = (*ChainPoller)(nil)
 
 // ChainPoller is responsible for polling the blockchain for new blocks and sending them to a processing channel.
 type ChainPoller struct {
@@ -71,40 +75,40 @@ func NewChainPoller(
 }
 
 // TryNextBlock - non-blocking return of the next block
-func (cp *ChainPoller) TryNextBlock() (*types.BlockInfo, bool) {
+func (cp *ChainPoller) TryNextBlock() (types.BlockDescription, bool) {
 	if !cp.isStarted.Load() {
-		return nil, false
+		return types.BlockInfo{}, false
 	}
 
 	select {
 	case block := <-cp.blockChan:
 		if block == nil {
-			return nil, false
+			return types.BlockInfo{}, false
 		}
 
-		return block, true
+		return *block, true
 	default:
-		return nil, false
+		return types.BlockInfo{}, false
 	}
 }
 
 // NextBlock - blocking version that waits for the next block
-func (cp *ChainPoller) NextBlock(ctx context.Context) (*types.BlockInfo, error) {
+func (cp *ChainPoller) NextBlock(ctx context.Context) (types.BlockDescription, error) {
 	if !cp.isStarted.Load() {
-		return nil, fmt.Errorf("chain poller is not running")
+		return types.BlockInfo{}, fmt.Errorf("chain poller is not running")
 	}
 
 	select {
 	case block := <-cp.blockChan:
 		if block == nil {
-			return nil, fmt.Errorf("received nil block from channel")
+			return types.BlockInfo{}, fmt.Errorf("received nil block from channel")
 		}
 
-		return block, nil
+		return *block, nil
 	case <-ctx.Done():
-		return nil, fmt.Errorf("context done: %w", ctx.Err())
+		return types.BlockInfo{}, fmt.Errorf("context done: %w", ctx.Err())
 	case <-cp.quit:
-		return nil, fmt.Errorf("chain poller is shutting down")
+		return types.BlockInfo{}, fmt.Errorf("chain poller is shutting down")
 	}
 }
 
@@ -265,12 +269,12 @@ func (cp *ChainPoller) tryPollChain(ctx context.Context, latestBlockHeight, bloc
 		return nil
 
 	case blockToRetrieve == latestBlockHeight:
-		var latestBlock *types.BlockInfo
+		var latestBlock types.BlockInfo
 		latestBlock, err = cp.consumerCon.QueryBlock(ctx, latestBlockHeight)
 		if err != nil {
 			return fmt.Errorf("failed to query latest block: %w", err)
 		}
-		blocks = []*types.BlockInfo{latestBlock}
+		blocks = []*types.BlockInfo{&latestBlock}
 
 	default:
 		blocks, err = cp.blocksWithRetry(ctx, blockToRetrieve, latestBlockHeight, cp.cfg.PollSize)
@@ -339,7 +343,7 @@ func (cp *ChainPoller) setNextHeight(height uint64) {
 
 // Retry helper methods remain the same
 func (cp *ChainPoller) blocksWithRetry(ctx context.Context, start, end uint64, limit uint32) ([]*types.BlockInfo, error) {
-	var blocks []*types.BlockInfo
+	var blocks []types.BlockInfo
 	var err error
 
 	retryErr := retry.Do(func() error {
@@ -369,16 +373,22 @@ func (cp *ChainPoller) blocksWithRetry(ctx context.Context, start, end uint64, l
 		return nil, fmt.Errorf("failed to query blocks: %w", retryErr)
 	}
 
-	return blocks, nil
+	// Convert []types.BlockInfo to []*types.BlockInfo
+	var result []*types.BlockInfo
+	for i := range blocks {
+		result = append(result, &blocks[i])
+	}
+
+	return result, nil
 }
 
 func (cp *ChainPoller) latestBlockHeightWithRetry(ctx context.Context) (uint64, error) {
-	var latestBlock *types.BlockInfo
+	var latestBlock types.BlockInfo
 	var err error
 
 	retryErr := retry.Do(func() error {
 		latestBlock, err = cp.consumerCon.QueryLatestBlock(ctx)
-		if latestBlock == nil || err != nil {
+		if err != nil {
 			return fmt.Errorf("failed to query latest block height: %w", err)
 		}
 

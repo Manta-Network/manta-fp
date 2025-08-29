@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Manta-Network/manta-fp/clientcontroller/babylon"
 	"strings"
 	"sync"
+
+	"github.com/Manta-Network/manta-fp/clientcontroller/babylon"
 
 	"github.com/Manta-Network/manta-fp/types"
 
@@ -36,7 +37,7 @@ type FinalityProviderApp struct {
 	quit      chan struct{}
 
 	cc                ccapi.BabylonController
-	consumerCon       *babylon.BabylonConsumerController
+	consumerCon       ccapi.ConsumerController
 	kr                keyring.Keyring
 	fps               *store.FinalityProviderStore
 	pubRandStore      *store.PubRandProofStore
@@ -117,7 +118,7 @@ func NewFinalityProviderAppFromConfig(
 
 func NewFinalityProviderApp(
 	config *fpcfg.Config,
-	cc *babylon.BabylonConsumerController,
+	cc ccapi.BabylonController,
 	consumerCon ccapi.ConsumerController,
 	em eotsmanager.EOTSManager,
 	poller types.BlockPoller[types.BlockDescription],
@@ -314,7 +315,7 @@ func (app *FinalityProviderApp) syncAllFinalityProvidersStatus(ctx context.Conte
 
 	for _, fp := range fps {
 		latestBlock, err := app.consumerCon.QueryLatestBlock(ctx)
-		if latestBlock == nil || err != nil {
+		if err != nil {
 			return fmt.Errorf("failed to query latest block height: %w", err)
 		}
 

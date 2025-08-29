@@ -405,17 +405,17 @@ func (cc *RollupBSNController) hasTimestampedPubRandomness(ctx context.Context, 
 // QueryLatestFinalizedBlock returns the finalized L2 block from a RPC call
 // NOTE: FP program cannot know if block is btc finalized or not, so it uses the last
 // block that is finalized by Ethereum, which is a stronger notion than BTC staking finalized
-func (cc *RollupBSNController) QueryLatestFinalizedBlock(ctx context.Context) (*types.BlockInfo, error) {
+func (cc *RollupBSNController) QueryLatestFinalizedBlock(ctx context.Context) (types.BlockInfo, error) {
 	l2Block, err := cc.ethClient.HeaderByNumber(ctx, big.NewInt(ethrpc.FinalizedBlockNumber.Int64()))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get finalized block header: %w", err)
+		return types.BlockInfo{}, fmt.Errorf("failed to get finalized block header: %w", err)
 	}
 
 	if l2Block.Number.Uint64() == 0 {
-		return nil, nil
+		return types.BlockInfo{}, fmt.Errorf("no finalized block found")
 	}
 
-	return types.NewBlockInfo(l2Block.Number.Uint64(), l2Block.Hash().Bytes(), false), nil
+	return *types.NewBlockInfo(l2Block.Number.Uint64(), l2Block.Hash().Bytes(), false), nil
 }
 
 func (cc *RollupBSNController) QueryBlocks(ctx context.Context, req *api.QueryBlocksRequest) ([]types.BlockInfo, error) {
@@ -470,10 +470,10 @@ func (cc *RollupBSNController) QueryBlocks(ctx context.Context, req *api.QueryBl
 }
 
 // QueryBlock returns the L2 block number and block hash with the given block number from a RPC call
-func (cc *RollupBSNController) QueryBlock(ctx context.Context, height uint64) (*types.BlockInfo, error) {
+func (cc *RollupBSNController) QueryBlock(ctx context.Context, height uint64) (types.BlockInfo, error) {
 	l2Block, err := cc.ethClient.HeaderByNumber(ctx, new(big.Int).SetUint64(height))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get block header by number: %w", err)
+		return types.BlockInfo{}, fmt.Errorf("failed to get block header by number: %w", err)
 	}
 
 	blockHashBytes := l2Block.Hash().Bytes()
@@ -483,7 +483,7 @@ func (cc *RollupBSNController) QueryBlock(ctx context.Context, height uint64) (*
 		zap.String("block_hash", hex.EncodeToString(blockHashBytes)),
 	)
 
-	return types.NewBlockInfo(height, blockHashBytes, false), nil
+	return *types.NewBlockInfo(height, blockHashBytes, false), nil
 }
 
 // Note: this is specific to the RollupBSNController and only used for testing
@@ -505,9 +505,6 @@ func (cc *RollupBSNController) QueryIsBlockFinalized(ctx context.Context, height
 		return false, fmt.Errorf("failed to query latest finalized block: %w", err)
 	}
 
-	if l2Block == nil {
-		return false, nil
-	}
 	if height > l2Block.GetHeight() {
 		return false, nil
 	}
@@ -516,13 +513,13 @@ func (cc *RollupBSNController) QueryIsBlockFinalized(ctx context.Context, height
 }
 
 // QueryLatestBlockHeight gets the latest rollup block number from a RPC call
-func (cc *RollupBSNController) QueryLatestBlock(ctx context.Context) (*types.BlockInfo, error) {
+func (cc *RollupBSNController) QueryLatestBlock(ctx context.Context) (types.BlockInfo, error) {
 	l2LatestBlock, err := cc.ethClient.HeaderByNumber(ctx, big.NewInt(ethrpc.LatestBlockNumber.Int64()))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get latest block header: %w", err)
+		return types.BlockInfo{}, fmt.Errorf("failed to get latest block header: %w", err)
 	}
 
-	return types.NewBlockInfo(l2LatestBlock.Number.Uint64(), l2LatestBlock.Hash().Bytes(), false), nil
+	return *types.NewBlockInfo(l2LatestBlock.Number.Uint64(), l2LatestBlock.Hash().Bytes(), false), nil
 }
 
 // QueryFirstPubRandCommit returns the first public randomness commitment

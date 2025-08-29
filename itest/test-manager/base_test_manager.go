@@ -32,6 +32,7 @@ import (
 
 	fpcc "github.com/Manta-Network/manta-fp/clientcontroller"
 	"github.com/Manta-Network/manta-fp/clientcontroller/api"
+	"github.com/Manta-Network/manta-fp/clientcontroller/babylon"
 	bbncc "github.com/Manta-Network/manta-fp/clientcontroller/babylon"
 	eotsclient "github.com/Manta-Network/manta-fp/eotsmanager/client"
 	eotsconfig "github.com/Manta-Network/manta-fp/eotsmanager/config"
@@ -642,7 +643,14 @@ func CreateAndStartFpApp(
 	require.NoError(t, err)
 
 	fpMetrics := metrics.NewFpMetrics()
-	poller := service.NewChainPoller(logger, cfg.PollerConfig, cc, fpMetrics)
+
+	// Type assertion to get the concrete type
+	babylonCtrl, ok := cc.(*babylon.BabylonConsumerController)
+	if !ok {
+		t.Fatal("cc must be *babylon.BabylonConsumerController")
+	}
+
+	poller := service.NewChainPoller(logger, cfg.PollerConfig, babylonCtrl, fpMetrics)
 
 	pubRandStore, err := fpstore.NewPubRandProofStore(fpdb)
 	require.NoError(t, err)
@@ -655,7 +663,7 @@ func CreateAndStartFpApp(
 		cfg.ContextSigningHeight,
 		cfg.SubmissionRetryInterval,
 	)
-	finalitySubmitter := service.NewDefaultFinalitySubmitter(cc, eotsCli, rndCommitter.GetPubRandProofList, fsCfg, logger, fpMetrics)
+	finalitySubmitter := service.NewDefaultFinalitySubmitter(babylonCtrl, eotsCli, rndCommitter.GetPubRandProofList, fsCfg, logger, fpMetrics)
 
 	fpApp, err := service.NewFinalityProviderApp(cfg, bc, cc, eotsCli, poller, rndCommitter, heightDeterminer, finalitySubmitter, fpMetrics, fpdb, logger)
 	require.NoError(t, err)

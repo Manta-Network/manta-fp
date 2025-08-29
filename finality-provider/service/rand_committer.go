@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+
 	ccapi "github.com/Manta-Network/manta-fp/clientcontroller/api"
 	"github.com/Manta-Network/manta-fp/eotsmanager"
 	"github.com/Manta-Network/manta-fp/metrics"
@@ -102,7 +103,7 @@ func (rc *DefaultRandomnessCommitter) ShouldCommit(ctx context.Context) (bool, u
 	}
 
 	tipBlock, err := rc.ConsumerCon.QueryLatestBlock(ctx)
-	if tipBlock == nil || err != nil {
+	if err != nil {
 		return false, 0, fmt.Errorf("failed to get the last block: %w", err)
 	}
 

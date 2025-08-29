@@ -40,7 +40,7 @@ type OpChainPoller struct {
 	quit           chan struct{}
 }
 
-func NewOpChainPoller(logger *zap.Logger, opClient node.EthClient, startHeight uint64, cfg *cfg.OpEventConfig, sRStore *store.OpStateRootStore, eventProvider *opstack.EventProvider, metrics *metrics.BbnFpMetrics) (*OpChainPoller, error) {
+func NewOpChainPoller(logger *zap.Logger, opClient node.EthClient, cfg *cfg.OpEventConfig, sRStore *store.OpStateRootStore, eventProvider *opstack.EventProvider, metrics *metrics.BbnFpMetrics) (*OpChainPoller, error) {
 	var contracts []common.Address
 	contracts = append(contracts, common.HexToAddress(cfg.L2OutputOracleAddr))
 
@@ -52,9 +52,9 @@ func NewOpChainPoller(logger *zap.Logger, opClient node.EthClient, startHeight u
 	if dbLatestBlock != nil {
 		logger.Info("sync detected last indexed block", zap.String("blockNumber", dbLatestBlock.String()))
 		fromBlock = dbLatestBlock
-	} else if startHeight > 0 {
-		logger.Info("no sync indexed state starting from supplied ethereum height", zap.Uint64("height", startHeight))
-		header, err := opClient.BlockHeaderByNumber(big.NewInt(int64(startHeight)))
+	} else if cfg.ScanStartHeight > 0 {
+		logger.Info("no sync indexed state starting from supplied ethereum height", zap.Uint64("height", cfg.ScanStartHeight))
+		header, err := opClient.BlockHeaderByNumber(big.NewInt(int64(cfg.ScanStartHeight)))
 		if err != nil {
 			return nil, fmt.Errorf("could not fetch starting block header: %w", err)
 		}

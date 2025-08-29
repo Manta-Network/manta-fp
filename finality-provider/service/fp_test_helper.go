@@ -150,7 +150,7 @@ func (th *FinalityProviderTestHelper) SubmitFinalitySignatureAndExtractPrivKey(
 	// send finality signature to the consumer chain
 	res, err := th.fp.consumerCon.SubmitBatchFinalitySigs(ctx, &ccapi.SubmitBatchFinalitySigsRequest{
 		FpPk:        th.fp.GetBtcPk(),
-		Blocks:      []types.BlockDescription{b},
+		Blocks:      []types.BlockInfo{*b},
 		PubRandList: []*btcec.FieldVal{pubRand},
 		ProofList:   [][]byte{proofBytes},
 		Sigs:        []*btcec.ModNScalar{eotsSig.ToModNScalar()},

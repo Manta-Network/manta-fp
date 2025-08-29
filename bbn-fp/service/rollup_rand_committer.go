@@ -46,7 +46,7 @@ func (rrc *RollupRandomnessCommitter) ShouldCommit(ctx context.Context) (bool, u
 
 	// Get current tip height (same as parent)
 	tipBlock, err := rrc.ConsumerCon.QueryLatestBlock(ctx)
-	if tipBlock == nil || err != nil {
+	if err != nil {
 		return false, 0, fmt.Errorf("failed to get the last block: %w", err)
 	}
 

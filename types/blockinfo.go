@@ -1,9 +1,10 @@
 package types
 
 import (
+	"math/big"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
-	"math/big"
 )
 
 type Block struct {
@@ -58,7 +59,15 @@ func (b BlockInfo) IsFinalized() bool {
 	return b.Finalized
 }
 
-func (b BlockInfo) MsgToSign(signCtx string, stateRoot []byte) []byte {
+func (b BlockInfo) MsgToSign(signCtx string) []byte {
+	if len(signCtx) == 0 {
+		return sdk.Uint64ToBigEndian(b.Height)
+	}
+
+	return append([]byte(signCtx), sdk.Uint64ToBigEndian(b.Height)...)
+}
+
+func (b BlockInfo) MsgToSignWithStateRoot(signCtx string, stateRoot []byte) []byte {
 	if len(signCtx) == 0 {
 		return append(sdk.Uint64ToBigEndian(b.Height), stateRoot...)
 	}
