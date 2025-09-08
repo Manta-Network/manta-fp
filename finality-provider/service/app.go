@@ -589,13 +589,9 @@ func (app *FinalityProviderApp) CreatePop(fpAddress sdk.AccAddress, fpPk *bbntyp
 	// NOTE: *schnorr.Sign has to take the hash of the message.
 	// So we have to hash the address before signing
 	hasher := tmhash.New()
-	nextHeight := app.poller.NextHeight()
-	//  nextHeight-1 might underflow if the nextHeight is 0
-	if nextHeight >= app.config.ContextSigningHeight {
-		signCtx := app.cc.GetFpPopContextV0()
-		if _, err := hasher.Write([]byte(signCtx)); err != nil {
-			return nil, fmt.Errorf("failed to write signing context to the hash: %w", err)
-		}
+	signCtx := app.cc.GetFpPopContextV0()
+	if _, err := hasher.Write([]byte(signCtx)); err != nil {
+		return nil, fmt.Errorf("failed to write signing context to the hash: %w", err)
 	}
 
 	if _, err := hasher.Write(fpAddress.Bytes()); err != nil {

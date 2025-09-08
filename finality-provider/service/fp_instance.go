@@ -33,6 +33,7 @@ type FinalityProviderInstance struct {
 	cc                ccapi.BabylonController
 	consumerCon       ccapi.ConsumerController
 	poller            *OpChainPoller
+	blockInfoChan     chan *types.BlockInfo
 	rndCommitter      types.RandomnessCommitter
 	heightDeterminer  types.HeightDeterminer
 	finalitySubmitter types.FinalitySignatureSubmitter
@@ -127,6 +128,7 @@ func newFinalityProviderInstanceFromStore(
 		criticalErrChan:   errChan,
 		em:                em,
 		poller:            poller,
+		blockInfoChan:     make(chan *types.BlockInfo, 100),
 		rndCommitter:      rndCommitter,
 		heightDeterminer:  heightDeterminer,
 		finalitySubmitter: finalitySubmitter,
@@ -241,7 +243,7 @@ func (fp *FinalityProviderInstance) finalitySigSubmissionLoop(ctx context.Contex
 // processAndSubmitSignatures handles the logic of fetching blocks, checking jail status,
 // processing them, and submitting signatures
 func (fp *FinalityProviderInstance) processAndSubmitSignatures(ctx context.Context) {
-	pollerBlocks := fp.getBatchBlocksFromPoller()
+	pollerBlocks := fp.getRandomnessCommitmentBlocksFromChan()
 	if len(pollerBlocks) == 0 {
 		return
 	}
@@ -342,18 +344,14 @@ func (fp *FinalityProviderInstance) randomnessCommitmentLoop(ctx context.Context
 // processRandomnessCommitment handles the logic of checking if randomness should be committed
 // and submitting the commitment if needed
 func (fp *FinalityProviderInstance) processRandomnessCommitment(ctx context.Context) {
-	should, startHeight, err := fp.rndCommitter.ShouldCommit(ctx)
-	if err != nil {
-		fp.reportCriticalErr(err)
 
+	pollerBlocks := fp.getAllBlocksFromChan()
+	if len(pollerBlocks) == 0 {
 		return
 	}
+	nextBlock := pollerBlocks[len(pollerBlocks)-1]
 
-	if !should {
-		return
-	}
-
-	txRes, err := fp.rndCommitter.Commit(ctx, startHeight)
+	txRes, err := fp.rndCommitter.Commit(ctx, nextBlock.Height)
 	if err != nil {
 		fp.metrics.IncrementFpTotalFailedRandomness(fp.GetBtcPkHex())
 		fp.reportCriticalErr(err)
@@ -369,6 +367,52 @@ func (fp *FinalityProviderInstance) processRandomnessCommitment(ctx context.Cont
 			zap.String("pk", fp.GetBtcPkHex()),
 			zap.String("tx_hash", txRes.TxHash),
 		)
+		fp.blockInfoChan <- nextBlock
+	}
+}
+
+func (fp *FinalityProviderInstance) getAllBlocksFromChan() []*types.BlockInfo {
+	var pollerBlocks []*types.BlockInfo
+	for {
+		select {
+		case b := <-fp.poller.GetBlockInfoChan():
+			shouldProcess, _, err := fp.rndCommitter.ShouldCommit(context.Background())
+			if err != nil {
+				fp.reportCriticalErr(err)
+				return nil
+			}
+			if shouldProcess {
+				pollerBlocks = append(pollerBlocks, b)
+			}
+			if len(pollerBlocks) == int(fp.cfg.BatchSubmissionSize) {
+				return pollerBlocks
+			}
+		case <-fp.quit:
+			fp.logger.Info("the get all blocks loop is closing")
+			return nil
+		default:
+			return pollerBlocks
+		}
+	}
+}
+
+func (fp *FinalityProviderInstance) GetRandomnessBlockInfoChan() <-chan *types.BlockInfo {
+	return fp.blockInfoChan
+}
+
+func (fp *FinalityProviderInstance) getRandomnessCommitmentBlocksFromChan() []types.BlockInfo {
+	var pollerBlocks []types.BlockInfo
+	for {
+		select {
+		case b := <-fp.GetRandomnessBlockInfoChan():
+			pollerBlocks = append(pollerBlocks, *b)
+			return pollerBlocks
+		case <-fp.quit:
+			fp.logger.Info("the get all blocks loop is closing")
+			return nil
+		default:
+			return pollerBlocks
+		}
 	}
 }
 

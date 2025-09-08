@@ -91,9 +91,9 @@ func NewRollupBSNFinalityProviderAppFromConfig(
 		return nil, fmt.Errorf("failed to initiate op state root store: %w", err)
 	}
 
-	opClient, err := node.DialEthClient(context.Background(), cfg.OpEventConfig.EthRpc)
+	opClient, err := node.DialEthClient(context.Background(), cfg.RollupNodeRPCAddress)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create op client: %w", err)
+		return nil, fmt.Errorf("failed to create eth client: %w", err)
 	}
 
 	ep, err := opstack.NewEventProvider(context.Background(), logger)

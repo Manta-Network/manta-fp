@@ -28,10 +28,10 @@ var (
 )
 
 var (
-	LatestBlock         = []byte("latestBlock")
-	LatestBlockKey      = []byte("latestBlockKey")
-	BlockHeaderName     = []byte("blockHeader")
-	StateRootBucketName = []byte("opStateRoot")
+	LatestBlock         = []byte("latestBlock7")
+	LatestBlockKey      = []byte("latestBlockKey7")
+	BlockHeaderName     = []byte("blockHeader7")
+	StateRootBucketName = []byte("opStateRoot7")
 )
 
 type OpStateRootStore struct {

@@ -17,7 +17,6 @@ import (
 	bbnclient "github.com/babylonlabs-io/babylon/v3/client/client"
 	bbntypes "github.com/babylonlabs-io/babylon/v3/types"
 	btcstakingtypes "github.com/babylonlabs-io/babylon/v3/x/btcstaking/types"
-	ckpttypes "github.com/babylonlabs-io/babylon/v3/x/checkpointing/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	cmtcrypto "github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -210,10 +209,10 @@ func (cc *RollupBSNController) SubmitBatchFinalitySigs(
 				FpPubkeyHex:    fpPkHex,
 				L1BlockNumber:  block.L1BlockNumber,
 				L1BlockHashHex: block.L1BlockHash.String(),
-				Height:         block.GetHeight(),
+				Height:         block.L2BlockNumber.Uint64(),
 				PubRand:        bbntypes.NewSchnorrPubRandFromFieldVal(req.PubRandList[i]).MustMarshal(),
 				Proof:          convertProof(cmtProof),
-				BlockHash:      block.GetHash(),
+				BlockHash:      block.Hash,
 				StateRoot:      block.StateRoot.StateRoot[:],
 				Signature:      bbntypes.NewSchnorrEOTSSigFromModNScalar(req.Sigs[i]).MustMarshal(),
 			},
@@ -366,28 +365,28 @@ func (cc *RollupBSNController) hasTimestampedPubRandomness(ctx context.Context, 
 	}
 
 	// Check if this specific public randomness is Bitcoin timestamped (finalized)
-	lastFinalizedCkpt, err := cc.bbnClient.LatestEpochFromStatus(ckpttypes.Finalized)
-	if err != nil {
-		cc.logger.Debug(
-			"FP has 0 voting power - failed to query last finalized checkpoint",
-			zap.String("fp_btc_pk", bbntypes.NewBIP340PubKeyFromBTCPK(fpPk).MarshalHex()),
-			zap.Uint64("height", blockHeight),
-			zap.Error(err),
-		)
-
-		return false
-	}
-	if pubRand.BabylonEpoch > lastFinalizedCkpt.RawCheckpoint.EpochNum {
-		cc.logger.Debug(
-			"FP has 0 voting power - public randomness epoch not yet finalized",
-			zap.String("fp_btc_pk", bbntypes.NewBIP340PubKeyFromBTCPK(fpPk).MarshalHex()),
-			zap.Uint64("height", blockHeight),
-			zap.Uint64("pub_rand_epoch", pubRand.BabylonEpoch),
-			zap.Uint64("last_finalized_epoch", lastFinalizedCkpt.RawCheckpoint.EpochNum),
-		)
-
-		return false
-	}
+	//lastFinalizedCkpt, err := cc.bbnClient.LatestEpochFromStatus(ckpttypes.Finalized)
+	//if err != nil {
+	//	cc.logger.Debug(
+	//		"FP has 0 voting power - failed to query last finalized checkpoint",
+	//		zap.String("fp_btc_pk", bbntypes.NewBIP340PubKeyFromBTCPK(fpPk).MarshalHex()),
+	//		zap.Uint64("height", blockHeight),
+	//		zap.Error(err),
+	//	)
+	//
+	//	return false
+	//}
+	//if pubRand.BabylonEpoch > lastFinalizedCkpt.RawCheckpoint.EpochNum {
+	//	cc.logger.Debug(
+	//		"FP has 0 voting power - public randomness epoch not yet finalized",
+	//		zap.String("fp_btc_pk", bbntypes.NewBIP340PubKeyFromBTCPK(fpPk).MarshalHex()),
+	//		zap.Uint64("height", blockHeight),
+	//		zap.Uint64("pub_rand_epoch", pubRand.BabylonEpoch),
+	//		zap.Uint64("last_finalized_epoch", lastFinalizedCkpt.RawCheckpoint.EpochNum),
+	//	)
+	//
+	//	return false
+	//}
 
 	cc.logger.Debug(
 		"FP has valid timestamped public randomness",
@@ -396,7 +395,7 @@ func (cc *RollupBSNController) hasTimestampedPubRandomness(ctx context.Context, 
 		zap.Uint64("pub_rand_start_height", pubRand.StartHeight),
 		zap.Uint64("num_pub_rand", pubRand.NumPubRand),
 		zap.Uint64("pub_rand_epoch", pubRand.BabylonEpoch),
-		zap.Uint64("last_finalized_epoch", lastFinalizedCkpt.RawCheckpoint.EpochNum),
+		//zap.Uint64("last_finalized_epoch", lastFinalizedCkpt.RawCheckpoint.EpochNum),
 	)
 
 	return true
