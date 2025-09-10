@@ -61,16 +61,16 @@ func (b BlockInfo) IsFinalized() bool {
 
 func (b BlockInfo) MsgToSign(signCtx string) []byte {
 	if len(signCtx) == 0 {
-		return sdk.Uint64ToBigEndian(b.Height)
+		return sdk.Uint64ToBigEndian(b.L2BlockNumber.Uint64())
 	}
 
-	return append([]byte(signCtx), sdk.Uint64ToBigEndian(b.Height)...)
+	return append([]byte(signCtx), sdk.Uint64ToBigEndian(b.L2BlockNumber.Uint64())...)
 }
 
-func (b BlockInfo) MsgToSignWithStateRoot(signCtx string, stateRoot []byte) []byte {
+func (b BlockInfo) MsgToSignWithStateRoot(signCtx string) []byte {
 	if len(signCtx) == 0 {
-		return append(sdk.Uint64ToBigEndian(b.Height), stateRoot...)
+		return append(sdk.Uint64ToBigEndian(b.L2BlockNumber.Uint64()), b.StateRoot.StateRoot[:]...)
 	}
 
-	return append([]byte(signCtx), append(sdk.Uint64ToBigEndian(b.Height), stateRoot...)...)
+	return append([]byte(signCtx), append(sdk.Uint64ToBigEndian(b.L2BlockNumber.Uint64()), b.StateRoot.StateRoot[:]...)...)
 }

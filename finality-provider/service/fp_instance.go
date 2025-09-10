@@ -351,7 +351,7 @@ func (fp *FinalityProviderInstance) processRandomnessCommitment(ctx context.Cont
 	}
 	nextBlock := pollerBlocks[len(pollerBlocks)-1]
 
-	txRes, err := fp.rndCommitter.Commit(ctx, nextBlock.Height)
+	txRes, err := fp.rndCommitter.Commit(ctx, nextBlock.L2BlockNumber.Uint64())
 	if err != nil {
 		fp.metrics.IncrementFpTotalFailedRandomness(fp.GetBtcPkHex())
 		fp.reportCriticalErr(err)

@@ -156,14 +156,14 @@ func (rfs *RollupFinalitySubmitter) submitBatchFinalitySignaturesOnce(ctx contex
 	for _, block := range blocks {
 		// Get public randomness for this specific height using sparse generation method
 		// We request exactly 1 randomness value since we need randomness for this single block height
-		pr, err := rfs.GetPubRandList(block.GetHeight(), 1)
+		pr, err := rfs.GetPubRandList(block.L2BlockNumber.Uint64(), 1)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get public randomness for height %d: %w", block.GetHeight(), err)
 		}
 		prList = append(prList, pr[0])
 
 		// Get proof for this specific height
-		proofs, err := rfs.ProofListGetterFunc(block.GetHeight(), 1)
+		proofs, err := rfs.ProofListGetterFunc(block.L2BlockNumber.Uint64(), 1)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get public randomness inclusion proof for height %d: %w\nplease recover the randomness proof from db", block.GetHeight(), err)
 		}
@@ -187,7 +187,7 @@ func (rfs *RollupFinalitySubmitter) submitBatchFinalitySignaturesOnce(ctx contex
 			}
 			// Skip this block if we encounter FailedPrecondition
 			rfs.Logger.Warn("encountered FailedPrecondition error, skipping block",
-				zap.Uint64("height", b.GetHeight()),
+				zap.Uint64("height", b.L2BlockNumber.Uint64()),
 				zap.String("hash", hex.EncodeToString(b.GetHash())),
 				zap.Error(err))
 

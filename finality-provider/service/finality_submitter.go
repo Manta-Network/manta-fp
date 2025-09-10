@@ -127,7 +127,7 @@ func (ds *DefaultFinalitySubmitter) FilterBlocksForVoting(ctx context.Context, b
 		}
 
 		// check whether the finality provider has voting power
-		blkHeight := blk.GetHeight()
+		blkHeight := blk.L2BlockNumber.Uint64()
 		hasPower, err = ds.getVotingPowerWithRetry(ctx, blkHeight)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get voting power for height %d: %w", blkHeight, err)
@@ -371,12 +371,12 @@ func (ds *DefaultFinalitySubmitter) SignFinalitySig(b types.BlockInfo) (*bbntype
 	var msgToSign []byte
 	if b.GetHeight() >= ds.Cfg.ContextSigningHeight {
 		signCtx := ds.ConsumerCtrl.GetFpFinVoteContext()
-		msgToSign = b.MsgToSignWithStateRoot(signCtx, b.StateRoot.StateRoot[:])
+		msgToSign = b.MsgToSignWithStateRoot(signCtx)
 	} else {
 		msgToSign = b.MsgToSign("")
 	}
 
-	sig, err := ds.Em.SignEOTS(ds.GetBtcPkBIP340().MustMarshal(), ds.State.GetChainID(), msgToSign, b.GetHeight())
+	sig, err := ds.Em.SignEOTS(ds.GetBtcPkBIP340().MustMarshal(), ds.State.GetChainID(), msgToSign, b.L2BlockNumber.Uint64())
 	if err != nil {
 		if strings.Contains(err.Error(), failedPreconditionErrStr) {
 			return nil, ErrFailedPrecondition

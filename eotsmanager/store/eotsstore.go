@@ -23,7 +23,7 @@ import (
 
 var (
 	eotsBucketName       = []byte("fpKeyNames")
-	signRecordBucketName = []byte("signRecord7")
+	signRecordBucketName = []byte("signRecord")
 )
 
 type EOTSStore struct {
