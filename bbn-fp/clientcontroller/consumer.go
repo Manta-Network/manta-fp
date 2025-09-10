@@ -771,11 +771,17 @@ func (cc *RollupBSNController) QueryFinalityProviderInAllowlist(ctx context.Cont
 }
 
 func convertProof(cmtProof cmtcrypto.Proof) Proof {
+	// Ensure aunts is encoded as [] instead of null when empty
+	aunts := cmtProof.Aunts
+	if aunts == nil {
+		aunts = make([][]byte, 0)
+	}
+
 	return Proof{
 		Total:    uint64(cmtProof.Total), // #nosec G115
 		Index:    uint64(cmtProof.Index), // #nosec G115
 		LeafHash: cmtProof.LeafHash,
-		Aunts:    cmtProof.Aunts,
+		Aunts:    aunts,
 	}
 }
 
