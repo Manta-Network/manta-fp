@@ -2,8 +2,12 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	router2 "github.com/Manta-Network/manta-fp/finality-provider/router"
+	"github.com/gin-gonic/gin"
 	"net"
+	"net/http"
 	"sync"
 	"sync/atomic"
 
@@ -24,8 +28,10 @@ type Server struct {
 	cfg    *fpcfg.Config
 	logger *zap.Logger
 
-	rpcServer *rpcServer
-	db        kvdb.Backend
+	rpcServer  *rpcServer
+	httpServer *http.Server
+
+	db kvdb.Backend
 
 	quit chan struct{}
 }
@@ -55,6 +61,28 @@ func (s *Server) RunUntilShutdown(ctx context.Context) error {
 	}
 	metricsServer := metrics.Start(promAddr, s.logger)
 
+	// Start the http server
+	registry := router2.NewRegistry()
+	r := gin.Default()
+	registry.Register(r)
+	apiAddress, err := s.cfg.Api.Address()
+	if err != nil {
+		return fmt.Errorf("failed to get http address: %w", err)
+	}
+
+	var httpServer *http.Server
+	httpServer = &http.Server{
+		Addr:    apiAddress,
+		Handler: r,
+	}
+
+	go func() {
+		if err := httpServer.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
+			s.logger.Error("api server starts failed", zap.String("err", err.Error()))
+		}
+	}()
+	s.httpServer = httpServer
+
 	defer func() {
 		s.logger.Info("Shutdown complete")
 	}()
@@ -65,6 +93,9 @@ func (s *Server) RunUntilShutdown(ctx context.Context) error {
 			s.logger.Error("Failed to close database", zap.Error(err))
 		} else {
 			s.logger.Info("Database closed")
+		}
+		if err := s.httpServer.Shutdown(context.Background()); err != nil {
+			s.logger.Error(fmt.Sprintf("Failed to close http server: %v", err)) // Log the error
 		}
 		metricsServer.Stop(ctx)
 		s.logger.Info("Metrics server stopped")

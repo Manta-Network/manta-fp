@@ -142,6 +142,7 @@ func (ocp *OpChainPoller) opPollChain() {
 					ocp.logger.Error("Add latest block fail", zap.String("err", err.Error()))
 					return
 				}
+				ocp.metrics.RecordLastPolledHeight(latestBlock.Uint64())
 			}
 			err := ocp.processBatch(ocp.headers)
 			if err == nil {

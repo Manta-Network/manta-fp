@@ -71,6 +71,8 @@ type Config struct {
 
 	Metrics *metrics.Config `group:"metrics" namespace:"metrics"`
 
+	Api *ApiConfig `group:"api" namespace:"api"`
+
 	ContextSigningHeight uint64 `long:"contextsigningheight" description:"The height at which the context signing will start"`
 }
 
@@ -95,6 +97,7 @@ func DefaultConfigWithHome(homePath string) Config {
 		EOTSManagerAddress:          defaultEOTSManagerAddress,
 		RPCListener:                 DefaultRPCListener,
 		Metrics:                     metrics.DefaultFpConfig(),
+		Api:                         DefaultApiConfig(),
 	}
 
 	if err := cfg.Validate(); err != nil {
