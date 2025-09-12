@@ -1,18 +1,17 @@
 package metrics
 
 import (
+	"strconv"
 	"sync"
 	"time"
 
-	"github.com/Manta-Network/manta-fp/bbn-fp/proto"
-	"github.com/Manta-Network/manta-fp/bbn-fp/store"
-
 	"github.com/prometheus/client_golang/prometheus"
+
+	"github.com/Manta-Network/manta-fp/finality-provider/proto"
+	"github.com/Manta-Network/manta-fp/finality-provider/store"
 )
 
 type BbnFpMetrics struct {
-	// all finality provider metrics
-	runningFpGauge prometheus.Gauge
 	// poller metrics
 	babylonTipHeight     prometheus.Gauge
 	lastPolledHeight     prometheus.Gauge
@@ -22,6 +21,7 @@ type BbnFpMetrics struct {
 	fpSecondsSinceLastVote          *prometheus.GaugeVec
 	fpSecondsSinceLastRandomness    *prometheus.GaugeVec
 	fpLastVotedHeight               *prometheus.GaugeVec
+	fpVotedHeight                   *prometheus.GaugeVec
 	fpLastProcessedHeight           *prometheus.GaugeVec
 	fpLastCommittedRandomnessHeight *prometheus.GaugeVec
 	fpTotalBlocksWithoutVotingPower *prometheus.CounterVec
@@ -36,19 +36,15 @@ type BbnFpMetrics struct {
 }
 
 // Declare a package-level variable for sync.Once to ensure metrics are registered only once
-var bbnFpMetricsRegisterOnce sync.Once
+var fpMetricsRegisterOnce sync.Once
 
 // Declare a variable to hold the instance of FpMetrics
-var bbNFpMetricsInstance *BbnFpMetrics
+var fpMetricsInstance *BbnFpMetrics
 
-// NewBbnFpMetrics initializes and registers the metrics, using sync.Once to ensure it's done only once
-func NewBbnFpMetrics() *BbnFpMetrics {
-	bbnFpMetricsRegisterOnce.Do(func() {
-		bbNFpMetricsInstance = &BbnFpMetrics{
-			runningFpGauge: prometheus.NewGauge(prometheus.GaugeOpts{
-				Name: "total_running_fps",
-				Help: "Current number of finality providers that are running",
-			}),
+// NewFpMetrics initializes and registers the metrics, using sync.Once to ensure it's done only once
+func NewFpMetrics() *BbnFpMetrics {
+	fpMetricsRegisterOnce.Do(func() {
+		fpMetricsInstance = &BbnFpMetrics{
 			fpStatus: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 				Name: "fp_status",
 				Help: "Current status of a finality provider",
@@ -85,6 +81,13 @@ func NewBbnFpMetrics() *BbnFpMetrics {
 					Help: "The last block height voted by a finality provider.",
 				},
 				[]string{"fp_btc_pk_hex"},
+			),
+			fpVotedHeight: prometheus.NewGaugeVec(
+				prometheus.GaugeOpts{
+					Name: "fp_voted_height",
+					Help: "The block height voted by a finality provider.",
+				},
+				[]string{"fp_btc_pk_hex", "height"},
 			),
 			fpLastProcessedHeight: prometheus.NewGaugeVec(
 				prometheus.GaugeOpts{
@@ -139,33 +142,33 @@ func NewBbnFpMetrics() *BbnFpMetrics {
 		}
 
 		// Register the metrics with Prometheus
-		prometheus.MustRegister(bbNFpMetricsInstance.runningFpGauge)
-		prometheus.MustRegister(bbNFpMetricsInstance.fpStatus)
-		prometheus.MustRegister(bbNFpMetricsInstance.babylonTipHeight)
-		prometheus.MustRegister(bbNFpMetricsInstance.lastPolledHeight)
-		prometheus.MustRegister(bbNFpMetricsInstance.pollerStartingHeight)
-		prometheus.MustRegister(bbNFpMetricsInstance.fpSecondsSinceLastVote)
-		prometheus.MustRegister(bbNFpMetricsInstance.fpSecondsSinceLastRandomness)
-		prometheus.MustRegister(bbNFpMetricsInstance.fpLastVotedHeight)
-		prometheus.MustRegister(bbNFpMetricsInstance.fpLastProcessedHeight)
-		prometheus.MustRegister(bbNFpMetricsInstance.fpTotalBlocksWithoutVotingPower)
-		prometheus.MustRegister(bbNFpMetricsInstance.fpTotalVotedBlocks)
-		prometheus.MustRegister(bbNFpMetricsInstance.fpTotalCommittedRandomness)
-		prometheus.MustRegister(bbNFpMetricsInstance.fpLastCommittedRandomnessHeight)
-		prometheus.MustRegister(bbNFpMetricsInstance.fpTotalFailedVotes)
-		prometheus.MustRegister(bbNFpMetricsInstance.fpTotalFailedRandomness)
+		prometheus.MustRegister(fpMetricsInstance.fpStatus)
+		prometheus.MustRegister(fpMetricsInstance.babylonTipHeight)
+		prometheus.MustRegister(fpMetricsInstance.lastPolledHeight)
+		prometheus.MustRegister(fpMetricsInstance.pollerStartingHeight)
+		prometheus.MustRegister(fpMetricsInstance.fpSecondsSinceLastVote)
+		prometheus.MustRegister(fpMetricsInstance.fpSecondsSinceLastRandomness)
+		prometheus.MustRegister(fpMetricsInstance.fpLastVotedHeight)
+		prometheus.MustRegister(fpMetricsInstance.fpLastProcessedHeight)
+		prometheus.MustRegister(fpMetricsInstance.fpTotalBlocksWithoutVotingPower)
+		prometheus.MustRegister(fpMetricsInstance.fpTotalVotedBlocks)
+		prometheus.MustRegister(fpMetricsInstance.fpTotalCommittedRandomness)
+		prometheus.MustRegister(fpMetricsInstance.fpLastCommittedRandomnessHeight)
+		prometheus.MustRegister(fpMetricsInstance.fpTotalFailedVotes)
+		prometheus.MustRegister(fpMetricsInstance.fpTotalFailedRandomness)
 	})
-	return bbNFpMetricsInstance
+
+	return fpMetricsInstance
 }
 
-// DecrementRunningFpGauge decrements the running finality provider gauge
-func (fm *BbnFpMetrics) DecrementRunningFpGauge() {
-	fm.runningFpGauge.Dec()
-}
+// InitializeFpMetrics initializes all metrics for a finality provider with default values so that they are available
+// in Prometheus even before any activity occurs. This is useful for ensuring that metrics are always present.
+func (fm *BbnFpMetrics) InitializeFpMetrics(fpBtcPkHex string) {
+	fm.fpSecondsSinceLastVote.WithLabelValues(fpBtcPkHex).Set(0)
+	fm.fpSecondsSinceLastRandomness.WithLabelValues(fpBtcPkHex).Set(0)
 
-// IncrementRunningFpGauge increments the running finality provider gauge
-func (fm *BbnFpMetrics) IncrementRunningFpGauge() {
-	fm.runningFpGauge.Inc()
+	fm.fpTotalFailedVotes.WithLabelValues(fpBtcPkHex)
+	fm.fpTotalFailedRandomness.WithLabelValues(fpBtcPkHex)
 }
 
 // RecordFpStatus records the status of a finality provider
@@ -201,6 +204,11 @@ func (fm *BbnFpMetrics) RecordFpSecondsSinceLastRandomness(fpBtcPkHex string, se
 // RecordFpLastVotedHeight records the last block height voted by a finality provider
 func (fm *BbnFpMetrics) RecordFpLastVotedHeight(fpBtcPkHex string, height uint64) {
 	fm.fpLastVotedHeight.WithLabelValues(fpBtcPkHex).Set(float64(height))
+}
+
+// RecordFpVotedHeight records the block height voted by a finality provider
+func (fm *BbnFpMetrics) RecordFpVotedHeight(fpBtcPkHex string, height uint64) {
+	fm.fpVotedHeight.WithLabelValues(fpBtcPkHex, strconv.FormatUint(height, 10)).SetToCurrentTime()
 }
 
 // RecordFpLastProcessedHeight records the last block height processed by a finality provider
@@ -269,19 +277,17 @@ func (fm *BbnFpMetrics) RecordFpRandomnessTime(fpBtcPkHex string) {
 	fm.previousRandomnessByFp[fpBtcPkHex] = &now
 }
 
-func (fm *BbnFpMetrics) UpdateFpMetrics(fps []*store.StoredFinalityProvider) {
+func (fm *BbnFpMetrics) UpdateFpMetrics(fp *store.StoredFinalityProvider) {
 	fm.mu.Lock()
 	defer fm.mu.Unlock()
 
-	for _, fp := range fps {
-		fm.RecordFpStatus(fp.GetBIP340BTCPK().MarshalHex(), fp.Status)
+	fm.RecordFpStatus(fp.GetBIP340BTCPK().MarshalHex(), fp.Status)
 
-		if lastVoteTime, ok := fm.previousVoteByFp[fp.GetBIP340BTCPK().MarshalHex()]; ok {
-			fm.RecordFpSecondsSinceLastVote(fp.GetBIP340BTCPK().MarshalHex(), time.Since(*lastVoteTime).Seconds())
-		}
+	if lastVoteTime, ok := fm.previousVoteByFp[fp.GetBIP340BTCPK().MarshalHex()]; ok {
+		fm.RecordFpSecondsSinceLastVote(fp.GetBIP340BTCPK().MarshalHex(), time.Since(*lastVoteTime).Seconds())
+	}
 
-		if lastRandomnessTime, ok := fm.previousRandomnessByFp[fp.GetBIP340BTCPK().MarshalHex()]; ok {
-			fm.RecordFpSecondsSinceLastRandomness(fp.GetBIP340BTCPK().MarshalHex(), time.Since(*lastRandomnessTime).Seconds())
-		}
+	if lastRandomnessTime, ok := fm.previousRandomnessByFp[fp.GetBIP340BTCPK().MarshalHex()]; ok {
+		fm.RecordFpSecondsSinceLastRandomness(fp.GetBIP340BTCPK().MarshalHex(), time.Since(*lastRandomnessTime).Seconds())
 	}
 }

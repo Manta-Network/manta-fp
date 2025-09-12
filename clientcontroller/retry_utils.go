@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	sdkErr "cosmossdk.io/errors"
-	btcstakingtypes "github.com/babylonlabs-io/babylon/x/btcstaking/types"
-	finalitytypes "github.com/babylonlabs-io/babylon/x/finality/types"
+	btcstakingtypes "github.com/babylonlabs-io/babylon/v3/x/btcstaking/types"
+	finalitytypes "github.com/babylonlabs-io/babylon/v3/x/finality/types"
 )
 
 // these errors are considered unrecoverable because they indicate
@@ -42,6 +42,7 @@ func (e ExpectedError) Error() string {
 	if e.error == nil {
 		return "expected error"
 	}
+
 	return e.error.Error()
 }
 
@@ -52,6 +53,7 @@ func (e ExpectedError) Unwrap() error {
 // Is adds support for errors.Is usage on isExpected
 func (ExpectedError) Is(err error) bool {
 	_, isExpected := err.(ExpectedError)
+
 	return isExpected
 }
 

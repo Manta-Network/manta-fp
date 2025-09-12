@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"net"
 	"path/filepath"
-	"strconv"
-
-	"github.com/Manta-Network/manta-fp/metrics"
-	"github.com/Manta-Network/manta-fp/util"
 
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/jessevdk/go-flags"
+
+	"github.com/Manta-Network/manta-fp/metrics"
+	"github.com/Manta-Network/manta-fp/util"
 )
 
 const (
@@ -21,6 +20,7 @@ const (
 	defaultLogFilename    = "eotsd.log"
 	defaultConfigFileName = "eotsd.conf"
 	DefaultRPCPort        = 12582
+	DefaultRPCHost        = "127.0.0.1"
 	defaultKeyringBackend = keyring.BackendTest
 )
 
@@ -31,13 +31,15 @@ var (
 	//   ~/Library/Application Support/Eotsd on MacOS
 	DefaultEOTSDir = btcutil.AppDataDir("eotsd", false)
 
-	defaultRPCListener = "127.0.0.1:" + strconv.Itoa(DefaultRPCPort)
+	//nolint:revive,stylecheck
+	defaultRpcListener = fmt.Sprintf("%s:%d", DefaultRPCHost, DefaultRPCPort)
 )
 
 type Config struct {
 	LogLevel       string          `long:"loglevel" description:"Logging level for all subsystems" choice:"trace" choice:"debug" choice:"info" choice:"warn" choice:"error" choice:"fatal"`
 	KeyringBackend string          `long:"keyring-type" description:"Type of keyring to use"`
 	RPCListener    string          `long:"rpclistener" description:"the listener for RPC connections, e.g., 127.0.0.1:1234"`
+	HMACKey        string          `long:"hmackey" description:"The HMAC key for authentication with FPD. If not provided, will use HMAC_KEY environment variable."`
 	Metrics        *metrics.Config `group:"metrics" namespace:"metrics"`
 
 	DatabaseConfig *DBConfig `group:"dbconfig" namespace:"dbconfig"`
@@ -65,7 +67,7 @@ func LoadConfig(homePath string) (*Config, error) {
 	fileParser := flags.NewParser(&cfg, flags.Default)
 	err := flags.NewIniParser(fileParser).ParseFile(cfgFile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse config file: %w", err)
 	}
 
 	// Make sure everything we just loaded makes sense.
@@ -77,8 +79,8 @@ func LoadConfig(homePath string) (*Config, error) {
 }
 
 // Validate check the given configuration to be sane. This makes sure no
-// illegal values or combination of values are set. All file system paths are
-// normalized. The cleaned up config is returned on success.
+// invalid values or combination of values are set. All file system paths are
+// normalized.
 func (cfg *Config) Validate() error {
 	_, err := net.ResolveTCPAddr("tcp", cfg.RPCListener)
 	if err != nil {
@@ -87,6 +89,10 @@ func (cfg *Config) Validate() error {
 
 	if cfg.KeyringBackend == "" {
 		return fmt.Errorf("the keyring backend should not be empty")
+	}
+
+	if cfg.KeyringBackend != keyring.BackendTest && cfg.KeyringBackend != keyring.BackendFile {
+		return fmt.Errorf("the keyring backend should be be either 'test' or 'file', got '%s'", cfg.KeyringBackend)
 	}
 
 	if cfg.Metrics == nil {
@@ -121,15 +127,22 @@ func DefaultConfig() *Config {
 }
 
 func DefaultConfigWithHomePath(homePath string) *Config {
+	return DefaultConfigWithHomePathAndPorts(homePath, DefaultRPCPort, metrics.DefaultEotsMetricsPort)
+}
+
+func DefaultConfigWithHomePathAndPorts(homePath string, rpcPort, metricsPort int) *Config {
 	cfg := &Config{
 		LogLevel:       defaultLogLevel,
 		KeyringBackend: defaultKeyringBackend,
 		DatabaseConfig: DefaultDBConfigWithHomePath(homePath),
-		RPCListener:    defaultRPCListener,
+		RPCListener:    defaultRpcListener,
 		Metrics:        metrics.DefaultEotsConfig(),
 	}
+	cfg.RPCListener = fmt.Sprintf("%s:%d", DefaultRPCHost, rpcPort)
+	cfg.Metrics.Port = metricsPort
 	if err := cfg.Validate(); err != nil {
 		panic(err)
 	}
+
 	return cfg
 }

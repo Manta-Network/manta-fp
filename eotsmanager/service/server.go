@@ -7,14 +7,14 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/Manta-Network/manta-fp/eotsmanager"
-	"github.com/Manta-Network/manta-fp/eotsmanager/config"
 	"github.com/Manta-Network/manta-fp/metrics"
 
 	"github.com/lightningnetwork/lnd/kvdb"
-	"github.com/lightningnetwork/lnd/signal"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+
+	"github.com/Manta-Network/manta-fp/eotsmanager"
+	"github.com/Manta-Network/manta-fp/eotsmanager/config"
 )
 
 // Server is the main daemon construct for the EOTS manager server. It handles
@@ -26,28 +26,26 @@ type Server struct {
 	cfg    *config.Config
 	logger *zap.Logger
 
-	rpcServer   *rpcServer
-	db          kvdb.Backend
-	interceptor signal.Interceptor
+	rpcServer *rpcServer
+	db        kvdb.Backend
 
 	quit chan struct{}
 }
 
 // NewEOTSManagerServer creates a new server with the given config.
-func NewEOTSManagerServer(cfg *config.Config, l *zap.Logger, em eotsmanager.EOTSManager, db kvdb.Backend, sig signal.Interceptor) *Server {
+func NewEOTSManagerServer(cfg *config.Config, l *zap.Logger, em *eotsmanager.LocalEOTSManager, db kvdb.Backend) *Server {
 	return &Server{
-		cfg:         cfg,
-		logger:      l,
-		rpcServer:   newRPCServer(em),
-		db:          db,
-		interceptor: sig,
-		quit:        make(chan struct{}, 1),
+		cfg:       cfg,
+		logger:    l,
+		rpcServer: newRPCServer(em),
+		db:        db,
+		quit:      make(chan struct{}, 1),
 	}
 }
 
 // RunUntilShutdown runs the main EOTS manager server loop until a signal is
 // received to shut down the process.
-func (s *Server) RunUntilShutdown() error {
+func (s *Server) RunUntilShutdown(ctx context.Context) error {
 	if atomic.AddInt32(&s.started, 1) != 1 {
 		return nil
 	}
@@ -66,16 +64,15 @@ func (s *Server) RunUntilShutdown() error {
 	defer func() {
 		s.logger.Info("Closing database...")
 		if err := s.db.Close(); err != nil {
-			s.logger.Error(fmt.Sprintf("Failed to close database: %v", err)) // Log the error
+			s.logger.Error("Failed to close database", zap.Error(err))
 		} else {
 			s.logger.Info("Database closed")
 		}
-		metricsServer.Stop(context.Background())
+		metricsServer.Stop(ctx)
 		s.logger.Info("Metrics server stopped")
 	}()
 
 	listenAddr := s.cfg.RPCListener
-
 	// we create listeners from the RPCListeners defined
 	// in the config.
 	lis, err := net.Listen("tcp", listenAddr)
@@ -83,12 +80,24 @@ func (s *Server) RunUntilShutdown() error {
 		return fmt.Errorf("failed to listen on %s: %w", listenAddr, err)
 	}
 	defer func() {
-		if err := lis.Close(); err != nil {
-			s.logger.Error(fmt.Sprintf("Failed to close network listener: %v", err))
-		}
+		_ = lis.Close()
 	}()
 
-	grpcServer := grpc.NewServer()
+	// Get HMAC key from config
+	hmacKey := s.cfg.HMACKey
+	if hmacKey == "" {
+		s.logger.Warn("HMAC key not configured in config. Authentication will not be enabled.")
+	}
+
+	var opts []grpc.ServerOption
+	if hmacKey != "" {
+		s.logger.Info("HMAC authentication enabled for gRPC server")
+		opts = append(opts, grpc.UnaryInterceptor(HMACUnaryServerInterceptor(hmacKey)))
+	} else {
+		s.logger.Warn("HMAC authentication not enabled. This is insecure.")
+	}
+
+	grpcServer := grpc.NewServer(opts...)
 	defer grpcServer.Stop()
 
 	if err := s.rpcServer.RegisterWithGrpcServer(grpcServer); err != nil {
@@ -103,7 +112,7 @@ func (s *Server) RunUntilShutdown() error {
 
 	// Wait for shutdown signal from either a graceful server stop or from
 	// the interrupt handler.
-	<-s.interceptor.ShutdownChannel()
+	<-ctx.Done()
 
 	return nil
 }
@@ -120,7 +129,11 @@ func (s *Server) startGrpcListen(grpcServer *grpc.Server, listeners []net.Listen
 			s.logger.Info("RPC server listening", zap.String("address", lis.Addr().String()))
 
 			// Close the ready chan to indicate we are listening.
-			defer lis.Close()
+			defer func() {
+				if err := lis.Close(); err != nil {
+					s.logger.Error("Error closing listener", zap.Error(err))
+				}
+			}()
 
 			wg.Done()
 			_ = grpcServer.Serve(lis)

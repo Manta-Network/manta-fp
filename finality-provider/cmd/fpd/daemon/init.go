@@ -1,0 +1,72 @@
+package daemon
+
+import (
+	"fmt"
+	"path/filepath"
+
+	clientctx "github.com/Manta-Network/manta-fp/finality-provider/cmd/fpd/clientctx"
+	commoncmd "github.com/Manta-Network/manta-fp/finality-provider/cmd/fpd/common"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/util"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/jessevdk/go-flags"
+	"github.com/spf13/cobra"
+)
+
+// CommandInit returns the init command of fpd daemon that starts the config dir.
+func CommandInit(binaryName string) *cobra.Command {
+	cmd := CommandInitTemplate(binaryName)
+	cmd.RunE = clientctx.RunEWithClientCtx(runInitCmd)
+
+	return cmd
+}
+
+func CommandInitTemplate(binaryName string) *cobra.Command {
+	var cmd = &cobra.Command{
+		Use:     "init",
+		Short:   "Initialize a finality-provider home directory.",
+		Long:    `Creates a new finality-provider home directory with default config`,
+		Example: fmt.Sprintf(`%s init --home /home/user/.fpd --force`, binaryName),
+		Args:    cobra.NoArgs,
+	}
+	cmd.Flags().Bool(commoncmd.ForceFlag, false, "Override existing configuration")
+	cmd.Flags().String("home", fpcfg.DefaultFpdDir, "The application home directory")
+
+	return cmd
+}
+
+func runInitCmd(ctx client.Context, cmd *cobra.Command, _ []string) error {
+	homePath, err := filepath.Abs(ctx.HomeDir)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path: %w", err)
+	}
+	homePath = util.CleanAndExpandPath(homePath)
+
+	force, err := cmd.Flags().GetBool(commoncmd.ForceFlag)
+	if err != nil {
+		return fmt.Errorf("failed to read flag %s: %w", commoncmd.ForceFlag, err)
+	}
+
+	if util.FileExists(homePath) && !force {
+		return fmt.Errorf("home path %s already exists", homePath)
+	}
+
+	if err := util.MakeDirectory(homePath); err != nil {
+		return fmt.Errorf("failed to make directory %s: %w", homePath, err)
+	}
+	// Create log directory
+	logDir := fpcfg.LogDir(homePath)
+	if err := util.MakeDirectory(logDir); err != nil {
+		return fmt.Errorf("failed to make log directory %s: %w", logDir, err)
+	}
+
+	defaultConfig := fpcfg.DefaultConfigWithHome(homePath)
+	fileParser := flags.NewParser(&defaultConfig, flags.Default)
+
+	err = flags.NewIniParser(fileParser).WriteFile(fpcfg.CfgFile(homePath), flags.IniIncludeComments|flags.IniIncludeDefaults)
+	if err != nil {
+		return fmt.Errorf("failed to write config file: %w", err)
+	}
+
+	return nil
+}

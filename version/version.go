@@ -22,12 +22,13 @@ func CommitInfo() (string, string) {
 	}
 
 	for _, s := range info.Settings {
-		if s.Key == "vcs.revision" {
+		switch s.Key {
+		case "vcs.revision":
 			if len(s.Value) < hashLen {
 				hashLen = len(s.Value)
 			}
 			hash = s.Value[:hashLen]
-		} else if s.Key == "vcs.time" {
+		case "vcs.time":
 			timestamp = s.Value
 		}
 	}
@@ -42,5 +43,6 @@ func Version() string {
 
 func RPC() string {
 	commit, ts := CommitInfo()
+
 	return fmt.Sprintf("version: %s, commit: %s, timestamp: %s ", version, commit, ts)
 }
