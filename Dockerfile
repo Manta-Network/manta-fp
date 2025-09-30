@@ -20,5 +20,5 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
 COPY --from=builder /app/manta-fp/build/eotsd .
-COPY --from=builder /app/manta-fp/build/bfpd .
+COPY --from=builder /app/manta-fp/build/rollup-fpd .
 COPY --from=builder /app/manta-fp/build/sfpd .
