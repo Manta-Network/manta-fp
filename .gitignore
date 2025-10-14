@@ -27,7 +27,7 @@ main
 tmp/
 build/
 dist/
-eotsd/
+eotsdt/
 sfpdc/
 bfpdc/
 

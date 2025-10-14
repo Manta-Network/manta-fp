@@ -13,9 +13,8 @@ import (
 	"time"
 
 	"github.com/Manta-Network/manta-fp/testutil"
-
-	"github.com/babylonlabs-io/babylon/testutil/datagen"
-	bbn "github.com/babylonlabs-io/babylon/types"
+	"github.com/babylonlabs-io/babylon/v3/testutil/datagen"
+	bbn "github.com/babylonlabs-io/babylon/v3/types"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/ory/dockertest/v3"
@@ -25,6 +24,7 @@ import (
 
 const (
 	babylondContainerName = "babylond"
+	anvilContainerName    = "anvil"
 )
 
 var errRegex = regexp.MustCompile(`(E|e)rror`)
@@ -80,7 +80,8 @@ func (m *Manager) RunBabylondResource(
 				"--keyring-backend=test --chain-id=chain-test "+
 				"--additional-sender-account "+
 				"--epoch-interval=%d --slashing-pk-script=%s "+
-				"--covenant-quorum=%d --covenant-pks=%s && "+
+				"--btc-finalization-timeout 2 --btc-confirmation-depth 1 "+
+				"--covenant-quorum=%d --covenant-pks=%s --max-finality-providers-in-script=2 && "+
 				"chmod -R 777 /home && "+
 				"babylond start --home=/home/node0/babylond",
 			epochInterval,
@@ -98,6 +99,9 @@ func (m *Manager) RunBabylondResource(
 				"e2e": "babylond",
 			},
 			User: "root:root",
+			Env: []string{
+				"BABYLON_BLS_PASSWORD=password",
+			},
 			Mounts: []string{
 				fmt.Sprintf("%s/:/home/", mounthPath),
 			},
@@ -120,6 +124,38 @@ func (m *Manager) RunBabylondResource(
 	}
 
 	m.resources[babylondContainerName] = resource
+
+	return resource, nil
+}
+
+// RunAnvilResource starts an Anvil (local Ethereum node) container
+func (m *Manager) RunAnvilResource(t *testing.T) (*dockertest.Resource, error) {
+	resource, err := m.pool.RunWithOptions(
+		&dockertest.RunOptions{
+			Name:       fmt.Sprintf("%s-%s", anvilContainerName, t.Name()),
+			Repository: m.cfg.AnvilRepository,
+			Tag:        m.cfg.AnvilVersion,
+			Labels: map[string]string{
+				"e2e": "anvil",
+			},
+			ExposedPorts: []string{
+				"8545/tcp", // Ethereum JSON-RPC port
+			},
+			Entrypoint: []string{"anvil"},
+			Cmd:        []string{"--host", "0.0.0.0", "--block-time", m.cfg.AnvilBlockTimeSeconds},
+		},
+		func(config *docker.HostConfig) {
+			config.PortBindings = map[docker.Port][]docker.PortBinding{
+				"8545/tcp": {{HostIP: "", HostPort: strconv.Itoa(testutil.AllocateUniquePort(t))}},
+			}
+		},
+		noRestart,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	m.resources[anvilContainerName] = resource
 
 	return resource, nil
 }
@@ -197,6 +233,7 @@ func (m *Manager) ExecCmd(t *testing.T, containerName string, command []string) 
 
 			if err != nil {
 				t.Logf("failed to create exec: %v", err)
+
 				return false
 			}
 
@@ -208,6 +245,7 @@ func (m *Manager) ExecCmd(t *testing.T, containerName string, command []string) 
 			})
 			if err != nil {
 				t.Logf("failed to start exec: %v", err)
+
 				return false
 			}
 
