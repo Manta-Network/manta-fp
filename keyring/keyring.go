@@ -4,15 +4,14 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strings"
-
-	"github.com/Manta-Network/manta-fp/codec"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+
+	"github.com/Manta-Network/manta-fp/codec"
 )
 
-func CreateKeyring(keyringDir string, chainID string, backend string, input *strings.Reader) (keyring.Keyring, error) {
+func CreateKeyring(keyringDir string, chainID string, backend string) (keyring.Keyring, error) {
 	ctx, err := CreateClientCtx(keyringDir, chainID)
 	if err != nil {
 		return nil, err
@@ -26,7 +25,7 @@ func CreateKeyring(keyringDir string, chainID string, backend string, input *str
 		ctx.ChainID,
 		backend,
 		ctx.KeyringDir,
-		input,
+		os.Stdin,
 		ctx.Codec,
 		ctx.KeyringOptions...)
 	if err != nil {
@@ -43,9 +42,9 @@ func CreateClientCtx(keyringDir string, chainID string) (client.Context, error) 
 	if keyringDir == "" {
 		homeDir, err = os.UserHomeDir()
 		if err != nil {
-			return client.Context{}, err
+			return client.Context{}, fmt.Errorf("failed to get user home directory: %w", err)
 		}
-		keyringDir = path.Join(homeDir, ".bbn-fp")
+		keyringDir = path.Join(homeDir, ".finality-provider")
 	}
 
 	return client.Context{}.

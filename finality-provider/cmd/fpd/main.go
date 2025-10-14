@@ -1,0 +1,64 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/Manta-Network/manta-fp/finality-provider/cmd/fpd/clientctx"
+	commoncmd "github.com/Manta-Network/manta-fp/finality-provider/cmd/fpd/common"
+	"github.com/Manta-Network/manta-fp/finality-provider/cmd/fpd/daemon"
+	fpcfg "github.com/Manta-Network/manta-fp/finality-provider/config"
+	"github.com/Manta-Network/manta-fp/version"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/spf13/cobra"
+)
+
+const BinaryName = "fpd"
+
+// NewRootCmd creates a new root command for fpd. It is called once in the main function.
+func NewRootCmd() *cobra.Command {
+	rootCmd := &cobra.Command{
+		Use:               BinaryName,
+		Short:             fmt.Sprintf("%s - Finality Provider Daemon (%s).", BinaryName, BinaryName),
+		Long:              fmt.Sprintf(`%s is the daemon to create and manage finality providers.`, BinaryName),
+		SilenceErrors:     false,
+		PersistentPreRunE: clientctx.PersistClientCtx(client.Context{}),
+	}
+	rootCmd.PersistentFlags().String(flags.FlagHome, fpcfg.DefaultFpdDir, "The application home directory")
+
+	return rootCmd
+}
+
+func main() {
+	cmd := NewRootCmd()
+
+	// add all common commands
+	commoncmd.AddCommonCommands(cmd, BinaryName)
+	// add all keys commands
+	commoncmd.AddKeysCommands(cmd)
+	// add all incentive commands
+	commoncmd.AddIncentiveCommands(cmd)
+	// add version commands
+	version.AddVersionCommands(cmd, BinaryName)
+
+	// add the rest of commands that are specific to Babylon finality provider
+	cmd.AddCommand(
+		daemon.CommandInit(BinaryName),
+		daemon.CommandStart(BinaryName),
+		daemon.CommandCreateFP(BinaryName),
+		daemon.CommandCommitPubRand(BinaryName),
+		daemon.CommandRecoverProof(BinaryName),
+	)
+
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	if err := cmd.ExecuteContext(ctx); err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "Whoops. There was an error while executing your %s CLI '%s'", BinaryName, err)
+		os.Exit(1) //nolint:gocritic
+	}
+}

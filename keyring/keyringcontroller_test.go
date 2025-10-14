@@ -6,21 +6,26 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/Manta-Network/manta-fp/eotsmanager"
-	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
-	fpkr "github.com/Manta-Network/manta-fp/keyring"
-	"github.com/Manta-Network/manta-fp/testutil"
+	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/babylon/types"
+	"github.com/babylonlabs-io/babylon/v3/types"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
+
+	eotscfg "github.com/Manta-Network/manta-fp/eotsmanager/config"
+	"github.com/Manta-Network/manta-fp/finality-provider/signingcontext"
+
+	fpkr "github.com/Manta-Network/manta-fp/keyring"
+
+	"github.com/Manta-Network/manta-fp/eotsmanager"
+	"github.com/Manta-Network/manta-fp/testutil"
 )
 
 var (
-	passphrase = "testpass"
-	hdPath     = ""
+	passphrase  = "testpass"
+	hdPath      = ""
+	testChainID = "test-chain"
 )
 
 // FuzzCreatePoP tests the creation of PoP
@@ -39,15 +44,19 @@ func FuzzCreatePoP(f *testing.F) {
 		eotsCfg := eotscfg.DefaultConfigWithHomePath(eotsHome)
 		dbBackend, err := eotsCfg.DatabaseConfig.GetDBBackend()
 		require.NoError(t, err)
-		em, err := eotsmanager.NewLocalEOTSManager(eotsHome, eotsCfg.KeyringBackend, dbBackend, zap.NewNop())
+		logger, err := zap.NewDevelopment()
+		require.NoError(t, err)
+		em, err := eotsmanager.NewLocalEOTSManager(eotsHome, eotsCfg.KeyringBackend, dbBackend, logger)
 		defer func() {
-			dbBackend.Close()
+			if err := dbBackend.Close(); err != nil {
+				t.Errorf("Error closing database: %v", err)
+			}
 			err := os.RemoveAll(eotsHome)
 			require.NoError(t, err)
 		}()
 		require.NoError(t, err)
 
-		btcPkBytes, err := em.CreateKey(keyName, passphrase, hdPath)
+		btcPkBytes, err := em.CreateKey(keyName, "")
 		require.NoError(t, err)
 		btcPk, err := types.NewBIP340PubKey(btcPkBytes)
 		require.NoError(t, err)
@@ -55,11 +64,14 @@ func FuzzCreatePoP(f *testing.F) {
 		require.NoError(t, err)
 
 		fpAddr := keyInfo.AccAddress
-		fpRecord, err := em.KeyRecord(btcPk.MustMarshal(), passphrase)
+		fpRecord, err := em.KeyRecord(btcPk.MustMarshal())
 		require.NoError(t, err)
-		pop, err := kc.CreatePop(fpAddr, fpRecord.PrivKey)
+		pop, err := kc.CreatePop(testChainID, fpAddr, fpRecord.PrivKey)
 		require.NoError(t, err)
-		err = pop.Verify(fpAddr, btcPk, &chaincfg.SimNetParams)
+
+		// Need to use the same signing context for verification
+		fpPopContext := signingcontext.FpPopContextV0(testChainID, signingcontext.AccBTCStaking.String())
+		err = pop.Verify(fpPopContext, fpAddr, btcPk, &chaincfg.SimNetParams)
 		require.NoError(t, err)
 	})
 }

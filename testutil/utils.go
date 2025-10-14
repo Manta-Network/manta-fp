@@ -4,41 +4,50 @@ import (
 	"math/rand"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
+	"go.uber.org/mock/gomock"
+
 	"github.com/Manta-Network/manta-fp/testutil/mocks"
 	"github.com/Manta-Network/manta-fp/types"
-
-	sdkmath "cosmossdk.io/math"
-	"github.com/golang/mock/gomock"
+	btcstktypes "github.com/babylonlabs-io/babylon/v3/x/btcstaking/types"
 )
 
 const TestPubRandNum = 25
 
-func ZeroCommissionRate() *sdkmath.LegacyDec {
-	zeroCom := sdkmath.LegacyZeroDec()
-	return &zeroCom
+func ZeroCommissionRate() btcstktypes.CommissionRates {
+	return btcstktypes.NewCommissionRates(sdkmath.LegacyZeroDec(), sdkmath.LegacyOneDec(), sdkmath.LegacyOneDec())
 }
 
-func PrepareMockedClientController(t *testing.T, r *rand.Rand, startHeight, currentHeight, finalityActivationBlkHeight uint64) *mocks.MockClientController {
+func PrepareMockedConsumerController(t *testing.T, r *rand.Rand, startHeight, currentHeight uint64) *mocks.MockConsumerController {
+	return PrepareMockedConsumerControllerWithTxHash(t, r, startHeight, currentHeight, GenRandomHexStr(r, 32))
+}
+
+func PrepareMockedConsumerControllerWithTxHash(t *testing.T, r *rand.Rand, startHeight, currentHeight uint64, txHash string) *mocks.MockConsumerController {
 	ctl := gomock.NewController(t)
-	mockClientController := mocks.NewMockClientController(ctl)
+	mockConsumerController := mocks.NewMockConsumerController(ctl)
 
 	for i := startHeight; i <= currentHeight; i++ {
-		resBlock := &types.BlockInfo{
-			Height: currentHeight,
-			Hash:   GenRandomByteArray(r, 32),
-		}
-		mockClientController.EXPECT().QueryBlock(i).Return(resBlock, nil).AnyTimes()
+		resBlock := types.NewBlockInfo(i, GenRandomByteArray(r, 32), true)
+		mockConsumerController.EXPECT().QueryBlock(gomock.Any(), i).Return(resBlock, nil).AnyTimes()
 	}
 
-	currentBlockRes := &types.BlockInfo{
-		Height: currentHeight,
-		Hash:   GenRandomByteArray(r, 32),
-	}
+	mockConsumerController.EXPECT().Close().Return(nil).AnyTimes()
+	mockConsumerController.EXPECT().QueryLatestBlock(gomock.Any()).Return(types.NewBlockInfo(currentHeight, GenRandomByteArray(r, 32), false), nil).AnyTimes()
+	mockConsumerController.EXPECT().QueryFinalityActivationBlockHeight(gomock.Any()).Return(uint64(1), nil).AnyTimes()
 
-	mockClientController.EXPECT().Close().Return(nil).AnyTimes()
-	mockClientController.EXPECT().QueryBestBlock().Return(currentBlockRes, nil).AnyTimes()
-	mockClientController.EXPECT().QueryActivatedHeight().Return(uint64(1), nil).AnyTimes()
-	mockClientController.EXPECT().QueryFinalityActivationBlockHeight().Return(finalityActivationBlkHeight, nil).AnyTimes()
+	// can't return (nil, nil) or `randomnessCommitmentLoop` will fatal (logic added in #454)
+	mockConsumerController.EXPECT().
+		CommitPubRandList(gomock.Any(), gomock.Any()).
+		Return(&types.TxResponse{TxHash: txHash}, nil).
+		AnyTimes()
 
-	return mockClientController
+	return mockConsumerController
+}
+
+func PrepareMockedBabylonController(t *testing.T) *mocks.MockBabylonController {
+	ctl := gomock.NewController(t)
+	mockBabylonController := mocks.NewMockBabylonController(ctl)
+	mockBabylonController.EXPECT().Close().Return(nil).AnyTimes()
+
+	return mockBabylonController
 }
