@@ -560,7 +560,7 @@ func (msm *MantaStakingMiddleware) registerOperator(ctx context.Context) (*types
 	copy(paddedY[32-len(yBytes):], yBytes)
 	publicKeyBytes := append(paddedX, paddedY...)
 
-	tx, err := msm.MantaStakingMiddlewareContract.RegisterOperator(opts, publicKeyBytes, msm.Cfg.OperatorName, common.HexToAddress(msm.Cfg.RewardAddress), big.NewInt(msm.Cfg.Commission))
+	tx, err := msm.MantaStakingMiddlewareContract.RegisterOperator(opts, publicKeyBytes, msm.Cfg.OperatorName, common.HexToAddress(msm.Cfg.RewardAddress), big.NewInt(msm.Cfg.Commission), common.HexToAddress(msm.Cfg.TokenAddress))
 	if err != nil {
 		return nil, nil, err
 	}

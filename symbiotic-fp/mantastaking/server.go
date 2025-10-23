@@ -29,6 +29,7 @@ type MantaStakingMiddlewareConfig struct {
 	SafeAbortNonceTooLowCount     uint64
 	OperatorName                  string
 	RewardAddress                 string
+	TokenAddress                  string
 	Commission                    int64
 	EnableHsm                     bool
 	HsmApiName                    string
